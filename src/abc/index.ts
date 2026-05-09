@@ -1,0 +1,1 @@
+export { registerAbcPackage } from "./renderer";

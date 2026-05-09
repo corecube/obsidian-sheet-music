@@ -1,0 +1,9 @@
+{
+	"id": "sheet-music",
+	"name": "Sheet Music",
+	"version": "1.0.0",
+	"minAppVersion": "1.5.0",
+	"description": "Render ABC notation, strumming patterns, and chord sheets inside notes.",
+	"author": "corecube",
+	"isDesktopOnly": false
+}
