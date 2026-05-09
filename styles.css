@@ -1,0 +1,281 @@
+.strumming-block {
+	border: 1px solid var(--background-modifier-border);
+	padding: 8px;
+}
+
+.strumming-rows {
+	font-size: var(--font-ui-small);
+	display: flex;
+	flex-direction: column;
+	font-family: var(--font-monospace);
+	overflow-x: auto;
+}
+
+.strumming-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: var(--font-ui-small);
+}
+
+.strumming-play-button {
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	cursor: pointer;
+}
+
+.strumming-row {
+	display: grid;
+	grid-template-columns: repeat(
+		var(--strumming-column-count),
+		max(20px, 2ch)
+	);
+	justify-content: start;
+	text-align: center;
+}
+
+.strumming-chord-row .strumming-cell {
+	white-space: nowrap;
+	overflow-wrap: normal;
+	word-break: keep-all;
+}
+
+.strumming-cell-active {
+	color: var(--text-accent);
+	background: var(--background-modifier-hover);
+}
+
+.strumming-error {
+	color: var(--text-error);
+	margin: 0;
+}
+
+.abc-notation-block {
+	border: 1px solid var(--background-modifier-border);
+	overflow-x: auto;
+	padding: 12px;
+}
+
+.abc-notation-sheet {
+	min-width: min-content;
+	color: var(--text-normal);
+}
+
+.abc-notation-controls {
+	display: flex;
+	align-items: center;
+	margin-bottom: 8px;
+	font-size: var(--font-ui-small);
+}
+
+.abc-notation-play-button {
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	cursor: pointer;
+}
+
+.abc-notation-tempo {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.abc-notation-transpose {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.abc-notation-tempo-input {
+	width: 120px;
+}
+
+.abc-notation-tempo-value {
+	text-align: right;
+}
+
+.abc-notation-transpose-value {
+	text-align: center;
+}
+
+.abc-notation-transpose-stepper,
+.abc-notation-transpose-reset {
+	height: 24px;
+	padding: 0 8px;
+	min-width: 24px;
+	cursor: pointer;
+}
+
+.abc-notation-error {
+	color: var(--text-error);
+	margin: 0;
+}
+
+.abc-notation-options-error {
+	background: color-mix(in srgb, var(--text-error) 16%, transparent);
+	border: 2px solid var(--text-error);
+	border-radius: 6px;
+	color: var(--text-error);
+	font-weight: 700;
+	margin-bottom: 10px;
+	padding: 10px 12px;
+}
+
+.abcjs-highlight {
+	fill: var(--text-accent);
+}
+
+.abcjs-cursor {
+	stroke: var(--text-accent);
+	stroke-width: 2px;
+}
+
+.musicxml-notation-block {
+	border: 1px solid var(--background-modifier-border);
+	padding: 12px;
+	overflow-x: auto;
+}
+
+.musicxml-notation-sheet {
+	min-width: min-content;
+}
+
+.musicxml-notation-error {
+	color: var(--text-error);
+	margin: 0;
+}
+
+.chords-notation-block {
+	border: 1px solid var(--background-modifier-border);
+	padding-top: 10px;
+	overflow-x: auto;
+}
+
+.chords-notation-diagrams {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.chords-notation-diagram-group {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 0 4px;
+}
+
+.chords-notation-diagram {
+	margin: -10px -8px;
+}
+
+.chords-notation-piano {
+	width: 100px;
+	margin-top: 12px;
+}
+
+.chords-notation-piano svg {
+	width: 100%;
+	height: auto;
+	color: var(--text-normal);
+}
+
+.chords-notation-piano .piano-key {
+	stroke: currentColor;
+	stroke-width: 0.5;
+}
+
+.chords-notation-piano .piano-key-white {
+	fill: var(--background-primary);
+}
+
+.chords-notation-piano .piano-key-black {
+	fill: var(--text-normal);
+}
+
+.chords-notation-piano .piano-key-active {
+	fill: var(--text-accent);
+}
+
+.chords-notation-piano .piano-key-root {
+	fill: var(--text-accent-hover);
+}
+
+.chords-notation-diagram svg {
+	width: 100px;
+	height: auto;
+	aspect-ratio: 4 / 5;
+	overflow: visible;
+	color: var(--text-normal);
+}
+
+.chords-notation-diagram svg line,
+.chords-notation-diagram svg .open-string { stroke: currentColor; fill: none; }
+
+.chords-notation-diagram svg .barre,
+.chords-notation-diagram svg .silent-string { fill: currentColor; stroke: currentColor; }
+
+.chords-notation-diagram svg .finger:not(.finger-text) { fill: var(--text-accent) }
+
+.chords-notation-diagram svg .finger-text { fill: var(--background-primary) }
+
+.chords-notation-diagram svg .title,
+.chords-notation-diagram svg .tuning,
+.chords-notation-diagram svg .fret-position { fill: var(--text-accent); }
+
+.chords-notation-diagram svg .string-text,
+.chords-notation-diagram svg .barre-text { fill: var(--background-primary); }
+
+.chords-notation-controls {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 8px;
+	font-size: var(--font-ui-small);
+}
+
+.chords-transpose-label {
+	color: var(--text-muted);
+	margin-right: 2px;
+}
+
+.chords-transpose-btn {
+	height: 22px;
+	padding: 0 8px;
+	cursor: pointer;
+}
+
+.chords-notation-content {
+	display: flex;
+	flex-direction: column;
+	min-width: min-content;
+	font-family: var(--font-monospace);
+	font-size: var(--code-size);
+}
+
+.chords-notation-line {
+	white-space: pre-wrap;
+	word-break: normal;
+	overflow-wrap: anywhere;
+	min-height: 1em;
+}
+
+.chords-notation-line-section {
+	font-weight: 600;
+}
+
+.chords-notation-token {
+	font-weight: 600;
+}
+
+.chords-notation-chord-token {
+	color: var(--text-accent);
+}
+
+.chords-notation-section-token {
+	color: var(--text-accent);
+}
+
+.chords-notation-bracket-token {
+	color: var(--text-faint);
+}

@@ -1,0 +1,1 @@
+export { registerChordsPackage } from "./renderer";
