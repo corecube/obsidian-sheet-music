@@ -18,6 +18,12 @@ export interface MusicXmlPackageSettings {
 
 export interface ChordsPackageSettings {
 	enabled: boolean;
+	defaultExpandTools: boolean;
+}
+
+export interface MidiCapturePackageSettings {
+	enabled: boolean;
+	bpm: number;
 }
 
 export interface SheetMusicSettings {
@@ -26,6 +32,7 @@ export interface SheetMusicSettings {
 		abc: AbcPackageSettings;
 		musicxml: MusicXmlPackageSettings;
 		chords: ChordsPackageSettings;
+		midiCapture: MidiCapturePackageSettings;
 	};
 }
 
@@ -51,6 +58,11 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 		},
 		chords: {
 			enabled: true,
+			defaultExpandTools: false,
+		},
+		midiCapture: {
+			enabled: true,
+			bpm: 120,
 		},
 	},
 };
@@ -234,5 +246,68 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName("Expand chord tools by default")
+			.setDesc(
+				"When enabled, chord diagrams and transpose controls are visible by default. Otherwise they are collapsed behind a toggle.",
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(
+						this.plugin.settings.packages.chords.defaultExpandTools,
+					)
+					.onChange(async (value) => {
+						this.plugin.settings.packages.chords.defaultExpandTools =
+							value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl).setName("MIDI capture").setHeading();
+
+		new Setting(containerEl)
+			.setName("Enable MIDI capture")
+			.setDesc(
+				"Registers the 'Start / Stop MIDI capture' commands for live piano transcription.",
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(
+						this.plugin.settings.packages.midiCapture.enabled,
+					)
+					.onChange(async (value) => {
+						this.plugin.settings.packages.midiCapture.enabled =
+							value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Capture BPM")
+			.setDesc(
+				"Tempo used to quantize captured note durations into ABC notation.",
+			)
+			.addText((text) => {
+				text.setPlaceholder(
+					String(DEFAULT_SETTINGS.packages.midiCapture.bpm),
+				);
+				text.setValue(
+					String(this.plugin.settings.packages.midiCapture.bpm),
+				);
+				text.inputEl.type = "number";
+				text.inputEl.min = "20";
+				text.inputEl.max = "300";
+				text.inputEl.step = "1";
+				text.onChange(async (value) => {
+					this.plugin.settings.packages.midiCapture.bpm =
+						parsePositiveNumber(
+							value,
+							DEFAULT_SETTINGS.packages.midiCapture.bpm,
+							20,
+						);
+					await this.plugin.saveSettings();
+				});
+			});
 	}
 }

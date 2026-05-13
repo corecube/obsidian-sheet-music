@@ -1,5 +1,6 @@
 import { MarkdownPostProcessorContext, MarkdownView, Plugin } from "obsidian";
 import { Chord } from "svguitar";
+import type SheetMusicPlugin from "../main";
 import { lookupChord, parseCustomChordDefs } from "./guitar-chord";
 import { renderGuitarDiagram } from "./guitar-diagram";
 import { lookupPianoChord } from "./piano-chord";
@@ -97,15 +98,17 @@ class ChordsBlockRenderer {
 		this.el.addClass("chords-notation-block");
 		this.customDefs = parseCustomChordDefs(source);
 
-		const names = this.chordNames(source);
-		if (names.length > 0) {
-			const diagrams = this.el.createDiv({
-				cls: "chords-notation-diagrams",
-			});
-			for (const name of names) this.renderDiagram(diagrams, name);
-		}
+		const tools = this.el.createEl("details", {
+			cls: "chords-notation-tools",
+		});
+		const chordsPlugin = this.plugin as SheetMusicPlugin;
+		tools.open = chordsPlugin.settings.packages.chords.defaultExpandTools;
+		tools.createEl("summary", {
+			cls: "chords-notation-tools-summary",
+			text: "Chord tools",
+		});
 
-		const controls = this.el.createDiv({
+		const controls = tools.createDiv({
 			cls: "chords-notation-controls",
 		});
 		controls.createSpan({
@@ -122,6 +125,14 @@ class ChordsBlockRenderer {
 		});
 		btnDown.addEventListener("click", () => this.applyTranspose(-1));
 		btnUp.addEventListener("click", () => this.applyTranspose(1));
+
+		const names = this.chordNames(source);
+		if (names.length > 0) {
+			const diagrams = tools.createDiv({
+				cls: "chords-notation-diagrams",
+			});
+			for (const name of names) this.renderDiagram(diagrams, name);
+		}
 
 		const contentEl = this.el.createDiv({ cls: "chords-notation-content" });
 		for (const line of splitChordsLines(source))

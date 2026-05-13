@@ -87,18 +87,7 @@ class MarkdownAutoscrollController {
 			}
 
 			scrollEl.scrollBy(0, 1);
-			if (this.hasReachedBottom(scrollEl)) {
-				this.stop();
-			}
 		}, interval);
-	}
-
-	private hasReachedBottom(scrollEl: HTMLElement): boolean {
-		const maxScrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
-		if (maxScrollTop <= 0) {
-			return false;
-		}
-		return scrollEl.scrollTop >= maxScrollTop - 1;
 	}
 
 	private getAutoscrollSpeedForFile(file: TFile | null): number {

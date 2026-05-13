@@ -2,6 +2,7 @@ import { Plugin } from "obsidian";
 import { registerAbcPackage } from "./abc";
 import { registerAutoscrollFeature } from "./autoscroll";
 import { registerChordsPackage } from "./chords";
+import { registerMidiCapturePackage } from "./midi-capture";
 import { registerMusicXmlPackage, registerMusicXmlFileView } from "./musicxml";
 import { registerStrummingPackage } from "./strumming";
 import {
@@ -34,6 +35,10 @@ export default class SheetMusicPlugin extends Plugin {
 			registerChordsPackage(this);
 		}
 
+		if (this.settings.packages.midiCapture.enabled) {
+			registerMidiCapturePackage(this);
+		}
+
 		registerAutoscrollFeature(this);
 	}
 
@@ -58,6 +63,10 @@ export default class SheetMusicPlugin extends Plugin {
 				chords: {
 					...DEFAULT_SETTINGS.packages.chords,
 					...stored?.packages?.chords,
+				},
+				midiCapture: {
+					...DEFAULT_SETTINGS.packages.midiCapture,
+					...stored?.packages?.midiCapture,
 				},
 			},
 		};
