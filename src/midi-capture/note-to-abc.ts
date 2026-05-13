@@ -191,21 +191,27 @@ function tokenToAbcString(token: AbcToken, key: KeyName): string {
 function tokensToAbcString(tokens: AbcToken[], key: KeyName): string {
 	let result = "";
 	let beatPos = 0;
-	let lastBarlineAt = 0;
 
 	for (const token of tokens) {
-		// Insert barline + newline when we've crossed into a new bar.
-		if (
-			beatPos > 0 &&
-			Math.floor(beatPos / UNITS_PER_BAR) >
-				Math.floor(lastBarlineAt / UNITS_PER_BAR)
-		) {
-			result += "| ";
-			lastBarlineAt = beatPos;
-		}
+		let remaining = token.durationUnits;
 
-		result += tokenToAbcString(token, key) + " ";
-		beatPos += token.durationUnits;
+		while (remaining > 0) {
+			const posInBar = beatPos % UNITS_PER_BAR;
+			const spaceInBar = UNITS_PER_BAR - posInBar;
+			const chunk = Math.min(remaining, spaceInBar);
+			const isNote = token.midiNotes.length > 0;
+			const continues = remaining > chunk;
+
+			if (beatPos > 0 && posInBar === 0) {
+				result += "| ";
+			}
+
+			const partial: AbcToken = { midiNotes: token.midiNotes, durationUnits: chunk };
+			result += tokenToAbcString(partial, key) + (continues && isNote ? "- " : " ");
+
+			beatPos += chunk;
+			remaining -= chunk;
+		}
 	}
 
 	return result.trimEnd();
@@ -229,14 +235,20 @@ export function buildAbcBlock(notes: CompletedNote[], bpm: number): string {
 		return [...header, clef, body || "z4"].join("\n");
 	}
 
-	const trebleBody = tokensToAbcString(
-		buildAbcTokens(treble, bpm, globalStart),
-		key,
-	);
-	const bassBody = tokensToAbcString(
-		buildAbcTokens(bass, bpm, globalStart),
-		key,
-	);
+	const trebleTokens = buildAbcTokens(treble, bpm, globalStart);
+	const bassTokens = buildAbcTokens(bass, bpm, globalStart);
+
+	// Pad both voices to the same number of complete bars so abcjs aligns measures.
+	const trebleDur = trebleTokens.reduce((s, t) => s + t.durationUnits, 0);
+	const bassDur = bassTokens.reduce((s, t) => s + t.durationUnits, 0);
+	const target = Math.ceil(Math.max(trebleDur, bassDur) / UNITS_PER_BAR) * UNITS_PER_BAR;
+	if (trebleDur < target)
+		trebleTokens.push({ midiNotes: [], durationUnits: target - trebleDur });
+	if (bassDur < target)
+		bassTokens.push({ midiNotes: [], durationUnits: target - bassDur });
+
+	const trebleBody = tokensToAbcString(trebleTokens, key);
+	const bassBody = tokensToAbcString(bassTokens, key);
 
 	return [
 		...header,
