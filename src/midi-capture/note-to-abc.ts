@@ -200,7 +200,7 @@ function tokensToAbcString(tokens: AbcToken[], key: KeyName): string {
 			Math.floor(beatPos / UNITS_PER_BAR) >
 				Math.floor(lastBarlineAt / UNITS_PER_BAR)
 		) {
-			result += "|\n";
+			result += "| ";
 			lastBarlineAt = beatPos;
 		}
 
