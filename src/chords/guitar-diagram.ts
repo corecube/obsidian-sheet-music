@@ -9,7 +9,7 @@ export function renderGuitarDiagram(
 	const diagramEl = container.createDiv({ cls: "chords-notation-diagram" });
 	// Electron exposes process.versions.node so svguitar's isNode() returns true,
 	// taking a code path that requires an actual SVG element as the container.
-	const svgEl = document.createElementNS(SVG_NS, "svg");
+	const svgEl = window.activeDocument.createElementNS(SVG_NS, "svg");
 	diagramEl.appendChild(svgEl);
 	new SVGuitarChord(svgEl as unknown as HTMLElement)
 		.configure({

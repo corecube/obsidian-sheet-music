@@ -33,7 +33,7 @@ export function renderPianoDiagram(
 	chord: PianoChord,
 ): void {
 	const diagramEl = container.createDiv({ cls: "chords-notation-piano" });
-	const svg = document.createElementNS(SVG_NS, "svg");
+	const svg = window.activeDocument.createElementNS(SVG_NS, "svg");
 	svg.setAttribute(
 		"viewBox",
 		`0 0 ${WHITE_W * WHITE_KEYS.length} ${WHITE_H}`,
@@ -44,7 +44,7 @@ export function renderPianoDiagram(
 	const notes = new Set(chord.notes);
 
 	WHITE_KEYS.forEach((pitch, i) => {
-		const rect = document.createElementNS(SVG_NS, "rect");
+		const rect = window.activeDocument.createElementNS(SVG_NS, "rect");
 		rect.setAttribute("x", String(i * WHITE_W));
 		rect.setAttribute("y", "0");
 		rect.setAttribute("width", String(WHITE_W));
@@ -54,7 +54,7 @@ export function renderPianoDiagram(
 	});
 
 	BLACK_KEYS.forEach(({ note, afterWhite }) => {
-		const rect = document.createElementNS(SVG_NS, "rect");
+		const rect = window.activeDocument.createElementNS(SVG_NS, "rect");
 		rect.setAttribute(
 			"x",
 			String((afterWhite + 1) * WHITE_W - BLACK_W / 2),

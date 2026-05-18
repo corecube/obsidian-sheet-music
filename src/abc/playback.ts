@@ -214,7 +214,7 @@ export class AbcPlaybackController extends MarkdownRenderChild {
 		}
 
 		this.cursorLine?.remove();
-		this.cursorLine = document.createElementNS(
+		this.cursorLine = window.activeDocument.createElementNS(
 			"http://www.w3.org/2000/svg",
 			"line",
 		);
