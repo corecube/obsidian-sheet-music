@@ -154,6 +154,18 @@ G[320003]
 
 Chord diagrams (guitar and piano) and transpose controls are available in the collapsible **chord tools** panel above the sheet. Define custom voicings by appending a fret string directly to the chord name: `Am[x02210]`.
 
+#### Roman numeral analysis
+
+Add a `key` property to the note's frontmatter and each chord diagram will show its Roman numeral below the diagram:
+
+```yaml
+---
+key: C
+---
+```
+
+With `key: C`, the diagram for `Am` is labelled `VIm`, `G` becomes `V`, and so on. Works with minor keys too (`key: Am`). If the chord cannot be resolved in the given key the label is omitted.
+
 ---
 
 ### Chord progressions
