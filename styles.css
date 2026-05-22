@@ -311,3 +311,11 @@
 .chords-notation-bracket-token {
 	color: var(--text-faint);
 }
+
+.chords-diagram-numeral {
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	font-style: italic;
+	color: var(--color-accent);
+	margin-bottom: 2px;
+}

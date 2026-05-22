@@ -10,6 +10,7 @@ import {
 	splitChordsLines,
 	tokenizeChordsLine,
 } from "./renderer-logic";
+import { Progression } from "tonal";
 import { transposeSource } from "./transpose";
 
 const FRET_STRING_RE = /^[xX0-9]+$/;
@@ -19,6 +20,7 @@ class ChordsBlockRenderer {
 	private readonly el: HTMLElement;
 	private readonly ctx: MarkdownPostProcessorContext;
 	private customDefs: Map<string, Chord> = new Map();
+	private currentKey = "";
 
 	constructor(
 		plugin: Plugin,
@@ -40,10 +42,10 @@ class ChordsBlockRenderer {
 				row.createSpan({ text: token.value });
 				continue;
 			}
+			const inner = token.value.slice(1, -1);
 			const cls = sectionLine
 				? "chords-notation-token chords-notation-section-token"
 				: "chords-notation-token chords-notation-chord-token";
-			const inner = token.value.slice(1, -1);
 			row.createSpan({ cls: "chords-notation-bracket-token", text: "[" });
 			row.createSpan({ cls, text: inner });
 			row.createSpan({ cls: "chords-notation-bracket-token", text: "]" });
@@ -84,9 +86,18 @@ class ChordsBlockRenderer {
 	}
 
 	private renderDiagram(container: HTMLElement, name: string): void {
-		const group = container.createDiv({
-			cls: "chords-notation-diagram-group",
-		});
+		const group = container.createDiv({ cls: "chords-notation-diagram-group" });
+
+		if (this.currentKey) {
+			const tonicRoot = this.currentKey.endsWith("m")
+				? this.currentKey.slice(0, -1)
+				: this.currentKey;
+			const numeral = Progression.toRomanNumerals(tonicRoot, [name])[0];
+			if (numeral && numeral !== name) {
+				group.createSpan({ cls: "chords-diagram-numeral", text: numeral });
+			}
+		}
+
 		const guitar = this.customDefs.get(name) ?? lookupChord(name);
 		if (guitar) renderGuitarDiagram(group, guitar);
 
@@ -98,9 +109,10 @@ class ChordsBlockRenderer {
 		this.el.addClass("chords-notation-block");
 		this.customDefs = parseCustomChordDefs(source);
 
-		const tools = this.el.createEl("details", {
-			cls: "chords-notation-tools",
-		});
+		const fm = this.ctx.frontmatter as Record<string, unknown> | null;
+		this.currentKey = typeof fm?.["key"] === "string" ? fm["key"] : "";
+
+		const tools = this.el.createEl("details", { cls: "chords-notation-tools" });
 		const chordsPlugin = this.plugin as SheetMusicPlugin;
 		tools.open = chordsPlugin.settings.packages.chords.defaultExpandTools;
 		tools.createEl("summary", {
@@ -108,29 +120,16 @@ class ChordsBlockRenderer {
 			text: "Chord tools",
 		});
 
-		const controls = tools.createDiv({
-			cls: "chords-notation-controls",
-		});
-		controls.createSpan({
-			cls: "chords-transpose-label",
-			text: "Transpose",
-		});
-		const btnDown = controls.createEl("button", {
-			cls: "chords-transpose-btn",
-			text: "−1",
-		});
-		const btnUp = controls.createEl("button", {
-			cls: "chords-transpose-btn",
-			text: "+1",
-		});
+		const controls = tools.createDiv({ cls: "chords-notation-controls" });
+		controls.createSpan({ cls: "chords-transpose-label", text: "Transpose" });
+		const btnDown = controls.createEl("button", { cls: "chords-transpose-btn", text: "−1" });
+		const btnUp = controls.createEl("button", { cls: "chords-transpose-btn", text: "+1" });
 		btnDown.addEventListener("click", () => this.applyTranspose(-1));
 		btnUp.addEventListener("click", () => this.applyTranspose(1));
 
 		const names = this.chordNames(source);
 		if (names.length > 0) {
-			const diagrams = tools.createDiv({
-				cls: "chords-notation-diagrams",
-			});
+			const diagrams = tools.createDiv({ cls: "chords-notation-diagrams" });
 			for (const name of names) this.renderDiagram(diagrams, name);
 		}
 
