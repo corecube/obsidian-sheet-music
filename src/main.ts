@@ -4,6 +4,7 @@ import { registerAutoscrollFeature } from "./autoscroll";
 import { registerChordsPackage } from "./chords";
 import { registerMidiCapturePackage } from "./midi-capture";
 import { registerMusicXmlPackage, registerMusicXmlFileView } from "./musicxml";
+import { registerProgressionPackage } from "./progression";
 import { registerStrummingPackage } from "./strumming";
 import {
 	DEFAULT_SETTINGS,
@@ -17,6 +18,10 @@ export default class SheetMusicPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new SheetMusicSettingTab(this.app, this));
+
+		if (this.settings.packages.progression.enabled) {
+			registerProgressionPackage(this);
+		}
 
 		if (this.settings.packages.strumming.enabled) {
 			registerStrummingPackage(this);
@@ -48,6 +53,10 @@ export default class SheetMusicPlugin extends Plugin {
 
 		this.settings = {
 			packages: {
+				progression: {
+					...DEFAULT_SETTINGS.packages.progression,
+					...stored?.packages?.progression,
+				},
 				strumming: {
 					...DEFAULT_SETTINGS.packages.strumming,
 					...stored?.packages?.strumming,

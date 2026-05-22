@@ -312,6 +312,11 @@
 	color: var(--text-faint);
 }
 
+.progression-error {
+	color: var(--text-error);
+	margin: 0;
+}
+
 .chords-diagram-numeral {
 	font-size: var(--font-ui-small);
 	font-weight: 600;

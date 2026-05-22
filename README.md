@@ -12,6 +12,7 @@ Render playable music notation inside your Obsidian notes. Supports ABC notation
 | `musicxml` | Renders engraved sheet music from MusicXML source |
 | `strumming` | Renders rhythm patterns with timing labels and animated playback |
 | `chords` | Renders lyric-and-chord sheets with chord diagrams and transposition |
+| `progression` | Shows chord progressions with Roman numeral analysis |
 
 **MIDI capture** — connect a keyboard and transcribe live playing directly into an `abc` block.
 
@@ -155,6 +156,38 @@ Chord diagrams (guitar and piano) and transpose controls are available in the co
 
 ---
 
+### Chord progressions
+
+Write progressions as Roman numerals or chord names — the block resolves the other direction automatically.
+
+The first line must be the key (`C`, `Am`, `F#`, `Bb`, etc.).
+
+**Roman numerals → chord names:**
+
+~~~md
+```progression
+C
+I IIm V7 I
+IVmaj7 V I
+```
+~~~
+
+**Chord names → Roman numerals:**
+
+~~~md
+```progression
+Am
+Am Dm E Am
+F C E Am
+```
+~~~
+
+**Mixed rows** — each line is interpreted independently, so you can freely mix both styles.
+
+Tonal's convention: minor chords use uppercase + `m` suffix (`IIm`, `VIm`), borrowed chords use a flat prefix (`bVII`).
+
+---
+
 ### MIDI capture
 
 1. Connect a MIDI keyboard. The ribbon button (music note icon) appears automatically.
@@ -185,6 +218,7 @@ Open **Settings → Sheet Music** to configure each package independently.
 
 | Section | Setting | Default |
 |---|---|---|
+| Progression | Enable | on |
 | ABC | Enable | on |
 | ABC | Staff width | 740 px |
 | ABC | Scale | 1.0× |

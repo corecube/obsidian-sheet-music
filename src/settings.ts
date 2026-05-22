@@ -1,5 +1,9 @@
 import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 
+export interface ProgressionPackageSettings {
+	enabled: boolean;
+}
+
 export interface StrummingPackageSettings {
 	enabled: boolean;
 }
@@ -28,6 +32,7 @@ export interface MidiCapturePackageSettings {
 
 export interface SheetMusicSettings {
 	packages: {
+		progression: ProgressionPackageSettings;
 		strumming: StrummingPackageSettings;
 		abc: AbcPackageSettings;
 		musicxml: MusicXmlPackageSettings;
@@ -43,6 +48,9 @@ type ConfigurablePlugin = Plugin & {
 
 export const DEFAULT_SETTINGS: SheetMusicSettings = {
 	packages: {
+		progression: {
+			enabled: true,
+		},
 		strumming: {
 			enabled: true,
 		},
@@ -93,6 +101,18 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 		new Setting(containerEl).setName("Packages").setHeading();
+
+		new Setting(containerEl)
+			.setName("Enable progression package")
+			.setDesc("Registers the progression code block processor.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.packages.progression.enabled)
+					.onChange(async (value) => {
+						this.plugin.settings.packages.progression.enabled = value;
+						await this.plugin.saveSettings();
+					}),
+			);
 
 		new Setting(containerEl)
 			.setName("Enable strumming package")
