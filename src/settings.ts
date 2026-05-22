@@ -11,6 +11,11 @@ export interface AbcPackageSettings {
 	instrument: number;
 }
 
+export interface MusicXmlPackageSettings {
+	enabled: boolean;
+	zoom: number;
+}
+
 export interface ChordsPackageSettings {
 	enabled: boolean;
 	defaultExpandTools: boolean;
@@ -25,6 +30,7 @@ export interface SheetMusicSettings {
 	packages: {
 		strumming: StrummingPackageSettings;
 		abc: AbcPackageSettings;
+		musicxml: MusicXmlPackageSettings;
 		chords: ChordsPackageSettings;
 		midiCapture: MidiCapturePackageSettings;
 	};
@@ -45,6 +51,10 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 			staffWidth: 740,
 			scale: 1,
 			instrument: 0,
+		},
+		musicxml: {
+			enabled: true,
+			zoom: 1,
 		},
 		chords: {
 			enabled: true,
@@ -180,6 +190,45 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 						Math.max(Math.round(parsed), 0),
 						127,
 					);
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl).setName("MusicXML notation").setHeading();
+
+		new Setting(containerEl)
+			.setName("Enable MusicXML package")
+			.setDesc("Registers the MusicXML code block processor.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.packages.musicxml.enabled)
+					.onChange(async (value) => {
+						this.plugin.settings.packages.musicxml.enabled = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("MusicXML zoom")
+			.setDesc("Sheet zoom multiplier.")
+			.addText((text) => {
+				text.setPlaceholder(
+					String(DEFAULT_SETTINGS.packages.musicxml.zoom),
+				);
+				text.setValue(
+					String(this.plugin.settings.packages.musicxml.zoom),
+				);
+				text.inputEl.type = "number";
+				text.inputEl.min = "0.5";
+				text.inputEl.max = "2";
+				text.inputEl.step = "0.1";
+				text.onChange(async (value) => {
+					this.plugin.settings.packages.musicxml.zoom =
+						parsePositiveNumber(
+							value,
+							DEFAULT_SETTINGS.packages.musicxml.zoom,
+							0.5,
+						);
 					await this.plugin.saveSettings();
 				});
 			});

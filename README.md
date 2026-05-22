@@ -3,6 +3,7 @@
 This plugin renders playable music notation directly inside Obsidian. It currently supports three notation formats:
 
 - `abc` for staff notation with playback, tempo control, and transposition
+- `musicxml` for engraved sheet music rendered from MusicXML
 - `strumming` for rhythm and chord-pattern blocks with playback animation
 - `chords` for lyric-and-chord sheets with highlighted chord and section markers
 - MIDI keyboard capture that transcribes live playing into an `abc` code block
@@ -13,6 +14,8 @@ This plugin renders playable music notation directly inside Obsidian. It current
 - Play ABC notation with adjustable tempo
 - Transpose ABC notation up or down while viewing
 - Pass custom `abcjs` render options from a JSON header
+- Render MusicXML from fenced code blocks
+- Open `.musicxml` files in a dedicated notation view
 - Render strumming patterns with timing rows and optional chord rows
 - Render chord sheets from `chords` code blocks
 - Highlight chord and section markers enclosed in brackets (for example `[C]` and `[Verse 1]`)
@@ -77,6 +80,50 @@ _E,,4 D,,4|G,,4 z4 |
 
 See the abcjs options reference for supported render options:
 https://docs.abcjs.net/
+
+### MusicXML
+
+Use MusicXML in either of these ways:
+
+1. Inline in a `musicxml` code block.
+2. As a standalone `.musicxml` file in your vault.
+
+```musicxml
+<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="3.1">
+	<part-list>
+		<score-part id="P1">
+			<part-name>Piano</part-name>
+		</score-part>
+	</part-list>
+	<part id="P1">
+		<measure number="1">
+			<attributes>
+				<divisions>1</divisions>
+				<key>
+					<fifths>0</fifths>
+				</key>
+				<time>
+					<beats>4</beats>
+					<beat-type>4</beat-type>
+				</time>
+				<clef>
+					<sign>G</sign>
+					<line>2</line>
+				</clef>
+			</attributes>
+			<note>
+				<pitch>
+					<step>C</step>
+					<octave>4</octave>
+				</pitch>
+				<duration>4</duration>
+				<type>whole</type>
+			</note>
+		</measure>
+	</part>
+</score-partwise>
+```
 
 ### Strumming patterns
 
@@ -180,6 +227,7 @@ You can configure the capture BPM in **Settings → MIDI Capture**.
 The plugin settings let you enable or disable each notation package independently.
 
 - ABC settings: staff width, scale, playback instrument
+- MusicXML settings: score zoom
 - Strumming settings: package enable toggle
 - Chords settings: package enable toggle
 - MIDI Capture settings: capture BPM
@@ -220,3 +268,4 @@ npm run lint
 
 - Obsidian API docs: https://docs.obsidian.md
 - abcjs docs: https://docs.abcjs.net/
+- OpenSheetMusicDisplay: https://opensheetmusicdisplay.github.io/

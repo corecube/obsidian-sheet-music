@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-sheet-music",
-	"version": "1.1.5",
-	"description": "An Obsidian plugin for ABC notation and strumming patterns.",
+	"version": "1.1.3",
+	"description": "An Obsidian plugin for ABC notation, MusicXML scores, and strumming patterns.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
@@ -31,6 +31,7 @@
 		"@tombatossals/chords-db": "github:tombatossals/chords-db",
 		"abcjs": "^6.6.2",
 		"obsidian": "latest",
+		"opensheetmusicdisplay": "^1.9.9",
 		"svguitar": "^2.5.1",
 		"tonal": "^6.4.3"
 	}

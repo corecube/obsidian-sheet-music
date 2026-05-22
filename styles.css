@@ -136,6 +136,21 @@
 	stroke-width: 2px;
 }
 
+.musicxml-notation-block {
+	border: 1px solid var(--background-modifier-border);
+	padding: 12px;
+	overflow-x: auto;
+}
+
+.musicxml-notation-sheet {
+	min-width: min-content;
+}
+
+.musicxml-notation-error {
+	color: var(--text-error);
+	margin: 0;
+}
+
 .chords-notation-block {
 	border: 1px solid var(--background-modifier-border);
 	padding-top: 10px;

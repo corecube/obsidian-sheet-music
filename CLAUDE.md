@@ -21,6 +21,7 @@ src/
   main.ts          # Plugin lifecycle only — loads settings, registers each package
   settings.ts      # Shared settings interface, defaults, settings UI tab
   abc/             # ABC notation (abcjs library) with playback
+  musicxml/        # MusicXML (OpenSheetMusicDisplay) with file view for .musicxml
   strumming/       # Strumming patterns with audio synthesis and playback animation
   chords/          # Chord sheets (lyrics + chord markers)
   autoscroll/      # Cross-cutting: auto-scroll driven by note frontmatter
@@ -39,6 +40,7 @@ Each notation package follows the same layout:
 
 Additional package-specific files:
 - **abc**: `playback.ts` — `AbcPlaybackController`, MIDI/audio playback via abcjs
+- **musicxml**: `file-view.ts` — custom Obsidian `FileView` for standalone `.musicxml` files
 - **strumming**: `parser.ts`, `stroke-token.ts` (data model), `audio.ts` (Web Audio synthesis), `animation.ts` + `animation-logic.ts` (beat animation)
 - **chords**: `chords-parser.ts` — chord block parsing
 
@@ -56,7 +58,7 @@ Additional package-specific files:
 
 ### Settings
 
-Each package has an enable/disable toggle. Additional per-package settings: ABC (staff width, scale, MIDI instrument). Settings persist via `plugin.loadData()` / `plugin.saveData()`.
+Each package has an enable/disable toggle. Additional per-package settings: ABC (staff width, scale, MIDI instrument), MusicXML (zoom). Settings persist via `plugin.loadData()` / `plugin.saveData()`.
 
 ### Auto-scroll
 
@@ -65,4 +67,5 @@ Reads `autoscroll-speed` from note frontmatter. Registered independently of nota
 ## Dependencies
 
 - `abcjs` — ABC notation rendering + playback
+- `opensheetmusicdisplay` — MusicXML rendering
 - All bundled into `main.js` by esbuild; `obsidian`, `electron`, and CodeMirror packages are externalized
