@@ -146,6 +146,10 @@
 	min-width: min-content;
 }
 
+.theme-dark .musicxml-notation-sheet {
+	filter: invert(1);
+}
+
 .musicxml-notation-error {
 	color: var(--text-error);
 	margin: 0;
