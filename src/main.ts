@@ -3,7 +3,6 @@ import { registerAbcPackage } from "./abc";
 import { registerAutoscrollFeature } from "./autoscroll";
 import { registerChordsPackage } from "./chords";
 import { registerMidiCapturePackage } from "./midi-capture";
-import { registerMusicXmlPackage, registerMusicXmlFileView } from "./musicxml";
 import { registerProgressionPackage } from "./progression";
 import { registerStrummingPackage } from "./strumming";
 import {
@@ -29,11 +28,6 @@ export default class SheetMusicPlugin extends Plugin {
 
 		if (this.settings.packages.abc.enabled) {
 			registerAbcPackage(this);
-		}
-
-		if (this.settings.packages.musicxml.enabled) {
-			registerMusicXmlPackage(this);
-			registerMusicXmlFileView(this);
 		}
 
 		if (this.settings.packages.chords.enabled) {
@@ -64,10 +58,6 @@ export default class SheetMusicPlugin extends Plugin {
 				abc: {
 					...DEFAULT_SETTINGS.packages.abc,
 					...stored?.packages?.abc,
-				},
-				musicxml: {
-					...DEFAULT_SETTINGS.packages.musicxml,
-					...stored?.packages?.musicxml,
 				},
 				chords: {
 					...DEFAULT_SETTINGS.packages.chords,
