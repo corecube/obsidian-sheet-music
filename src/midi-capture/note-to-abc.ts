@@ -13,8 +13,9 @@ interface AbcToken {
 }
 
 // Keys in preference order (fewer accidentals first) for tie-breaking detection.
-const KEYS = ["C", "G", "F", "D", "Bb", "A", "Eb", "E", "Ab"] as const;
-type KeyName = (typeof KEYS)[number];
+export const ABC_KEYS = ["C", "G", "F", "D", "Bb", "A", "Eb", "E", "Ab"] as const;
+export type KeyName = (typeof ABC_KEYS)[number];
+const KEYS = ABC_KEYS;
 
 // Diatonic semitone sets per major key, used for key scoring.
 const KEY_DIATONIC: Record<KeyName, ReadonlySet<number>> = {

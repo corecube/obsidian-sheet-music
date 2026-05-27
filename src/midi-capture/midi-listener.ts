@@ -6,7 +6,8 @@ interface MidiMessageData {
 
 interface MidiInputPort {
 	readonly name?: string | null;
-	onmidimessage: ((event: MidiMessageData) => void) | null;
+	addEventListener(type: "midimessage", listener: (event: MidiMessageData) => void): void;
+	removeEventListener(type: "midimessage", listener: (event: MidiMessageData) => void): void;
 }
 
 interface MidiAccessResult {
@@ -54,13 +55,13 @@ export class MidiListener {
 		}
 
 		this.input = target;
-		target.onmidimessage = this.handleMessage;
+		target.addEventListener("midimessage", this.handleMessage);
 		return target.name ?? "Unknown device";
 	}
 
 	stop(): void {
 		if (this.input) {
-			this.input.onmidimessage = null;
+			this.input.removeEventListener("midimessage", this.handleMessage);
 			this.input = null;
 		}
 	}

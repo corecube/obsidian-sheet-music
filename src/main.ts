@@ -3,6 +3,7 @@ import { registerAbcPackage } from "./abc";
 import { registerAutoscrollFeature } from "./autoscroll";
 import { registerChordsPackage } from "./chords";
 import { registerMidiCapturePackage } from "./midi-capture";
+import { registerPianoMonitorPackage } from "./piano-monitor";
 import { registerProgressionPackage } from "./progression";
 import { registerStrummingPackage } from "./strumming";
 import {
@@ -38,6 +39,10 @@ export default class SheetMusicPlugin extends Plugin {
 			registerMidiCapturePackage(this);
 		}
 
+		if (this.settings.packages.pianoMonitor.enabled) {
+			registerPianoMonitorPackage(this);
+		}
+
 		registerAutoscrollFeature(this);
 	}
 
@@ -66,6 +71,10 @@ export default class SheetMusicPlugin extends Plugin {
 				midiCapture: {
 					...DEFAULT_SETTINGS.packages.midiCapture,
 					...stored?.packages?.midiCapture,
+				},
+				pianoMonitor: {
+					...DEFAULT_SETTINGS.packages.pianoMonitor,
+					...stored?.packages?.pianoMonitor,
 				},
 			},
 		};

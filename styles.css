@@ -309,3 +309,72 @@
 	color: var(--color-accent);
 	margin-bottom: 2px;
 }
+
+.piano-monitor-view {
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	overflow-y: auto;
+}
+
+.piano-monitor-section {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.piano-monitor-heading {
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin: 0;
+}
+
+.piano-monitor-staff svg {
+	width: 100%;
+	height: auto;
+	color: var(--text-normal);
+}
+
+.piano-monitor-chord {
+	font-size: var(--h4-size);
+	font-weight: 700;
+	color: var(--text-accent);
+	min-height: 1.5em;
+}
+
+.piano-monitor-status {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+
+.piano-monitor-controls {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.piano-monitor-select {
+	font-size: var(--font-ui-small);
+}
+
+.piano-monitor-key-table td {
+	padding: 1px 8px 1px 0;
+	font-size: var(--font-ui-small);
+}
+
+.piano-monitor-numeral {
+	color: var(--text-accent);
+	font-style: italic;
+	font-weight: 600;
+}
+
+.piano-monitor-scale-notes {
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-small);
+	letter-spacing: 0.1em;
+}

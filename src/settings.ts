@@ -20,6 +20,10 @@ export interface ChordsPackageSettings {
 	defaultExpandTools: boolean;
 }
 
+export interface PianoMonitorPackageSettings {
+	enabled: boolean;
+}
+
 export interface MidiCapturePackageSettings {
 	enabled: boolean;
 	bpm: number;
@@ -32,6 +36,7 @@ export interface SheetMusicSettings {
 		abc: AbcPackageSettings;
 		chords: ChordsPackageSettings;
 		midiCapture: MidiCapturePackageSettings;
+		pianoMonitor: PianoMonitorPackageSettings;
 	};
 }
 
@@ -61,6 +66,9 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 		midiCapture: {
 			enabled: true,
 			bpm: 120,
+		},
+		pianoMonitor: {
+			enabled: true,
 		},
 	},
 };
@@ -280,5 +288,20 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
+
+		new Setting(containerEl).setName("Piano monitor").setHeading();
+
+		new Setting(containerEl)
+			.setName("Enable piano monitor")
+			.setDesc("Registers the piano monitor sidebar view command.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.packages.pianoMonitor.enabled)
+					.onChange(async (value) => {
+						this.plugin.settings.packages.pianoMonitor.enabled =
+							value;
+						await this.plugin.saveSettings();
+					}),
+			);
 	}
 }
