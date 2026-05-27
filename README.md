@@ -1,6 +1,6 @@
 # Sheet Music
 
-Render playable music notation inside your Obsidian notes. Supports ABC notation, MusicXML scores, strumming patterns, chord sheets, and live MIDI capture.
+Render playable music notation inside your Obsidian notes. Supports ABC notation, strumming patterns, chord sheets, and live MIDI capture.
 
 ---
 
@@ -9,7 +9,6 @@ Render playable music notation inside your Obsidian notes. Supports ABC notation
 | Block type | What it does |
 |---|---|
 | `abc` | Renders staff notation with playback, tempo control, and transposition |
-| `musicxml` | Renders engraved sheet music from MusicXML source |
 | `strumming` | Renders rhythm patterns with timing labels and animated playback |
 | `chords` | Renders lyric-and-chord sheets with chord diagrams and transposition |
 | `progression` | Shows chord progressions with Roman numeral analysis |
@@ -51,37 +50,6 @@ V:Guitar clef=treble
 V:Bass clef=bass
 [V:Guitar] _d_d z2 c2 _b,2| G4 z4 |
 [V:Bass] _E,,4 D,,4|G,,4 z4 |
-```
-~~~
-
----
-
-### MusicXML
-
-Paste MusicXML directly into a `musicxml` block, or open a `.musicxml` file from your vault in the dedicated notation view.
-
-~~~md
-```musicxml
-<?xml version="1.0" encoding="UTF-8"?>
-<score-partwise version="3.1">
-  <part-list>
-    <score-part id="P1"><part-name>Piano</part-name></score-part>
-  </part-list>
-  <part id="P1">
-    <measure number="1">
-      <attributes>
-        <divisions>1</divisions>
-        <key><fifths>0</fifths></key>
-        <time><beats>4</beats><beat-type>4</beat-type></time>
-        <clef><sign>G</sign><line>2</line></clef>
-      </attributes>
-      <note>
-        <pitch><step>C</step><octave>4</octave></pitch>
-        <duration>4</duration><type>whole</type>
-      </note>
-    </measure>
-  </part>
-</score-partwise>
 ```
 ~~~
 
@@ -235,8 +203,6 @@ Open **Settings → Sheet Music** to configure each package independently.
 | ABC | Staff width | 740 px |
 | ABC | Scale | 1.0× |
 | ABC | MIDI instrument | 0 (Piano) |
-| MusicXML | Enable | on |
-| MusicXML | Zoom | 1.0× |
 | Strumming | Enable | on |
 | Chords | Enable | on |
 | Chords | Expand chord tools by default | off |
@@ -270,5 +236,4 @@ npm run lint      # ESLint
 ### References
 
 - [abcjs documentation](https://docs.abcjs.net/)
-- [OpenSheetMusicDisplay](https://opensheetmusicdisplay.github.io/)
 - [Obsidian API](https://docs.obsidian.md)

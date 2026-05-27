@@ -19,7 +19,7 @@ export default tseslint.config(
 	...obsidianmd.configs.recommended,
 	{
 		// The sentence-case rule has no acronym exceptions; we deliberately keep
-		// "ABC", "MusicXML", and "MIDI" capitalized per Obsidian's published style guide.
+		// "ABC" and "MIDI" capitalized per Obsidian's published style guide.
 		files: ["src/settings.ts", "src/midi-capture/renderer.ts", "src/piano-monitor/view.ts"],
 		rules: {
 			"obsidianmd/ui/sentence-case": "off",
