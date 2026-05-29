@@ -6,25 +6,16 @@ interface MidiEvent {
 	ms: number;
 }
 
-interface MidiRecording {
-	v: number;
-	events: MidiEvent[];
-}
-
-function parseMidiRecording(source: string): MidiRecording | null {
-	try {
-		const data = JSON.parse(source) as unknown;
-		if (
-			typeof data !== "object" ||
-			data === null ||
-			!Array.isArray((data as MidiRecording).events)
-		) {
-			return null;
-		}
-		return data as MidiRecording;
-	} catch {
-		return null;
-	}
+function parseMidiEvents(source: string): MidiEvent[] {
+	return source
+		.trim()
+		.split("\n")
+		.flatMap((line) => {
+			const parts = line.trim().split(/\s+/).map(Number);
+			if (parts.length < 2 || parts.some(isNaN)) return [];
+			const [ms, ...d] = parts;
+			return [{ ms: ms!, d }];
+		});
 }
 
 function formatDuration(ms: number): string {
@@ -35,73 +26,67 @@ function formatDuration(ms: number): string {
 }
 
 export function registerMidiPlayerRenderer(plugin: Plugin): void {
-	plugin.registerMarkdownCodeBlockProcessor(
-		"midi",
-		async (source, el) => {
-			const recording = parseMidiRecording(source.trim());
+	plugin.registerMarkdownCodeBlockProcessor("midi", (source, el) => {
+		const events = parseMidiEvents(source);
 
-			if (!recording || recording.events.length === 0) {
-				el.createEl("p", {
-					text: "No MIDI events recorded.",
-					cls: "sheet-music-midi-empty",
-				});
+		if (events.length === 0) {
+			el.createEl("p", {
+				text: "No MIDI events recorded.",
+				cls: "sheet-music-midi-empty",
+			});
+			return;
+		}
+
+		const totalMs = events.reduce((max, e) => Math.max(max, e.ms), 0);
+
+		const container = el.createDiv({ cls: "sheet-music-midi-player" });
+		const controls = container.createDiv({ cls: "sheet-music-midi-controls" });
+		const playBtn = controls.createEl("button", { cls: "sheet-music-midi-btn" });
+		playBtn.textContent = "▶ Play";
+
+		const timeDisplay = controls.createSpan({ cls: "sheet-music-midi-time" });
+		timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
+
+		const engine = new MidiPlayerEngine();
+		let playing = false;
+		let ticker: ReturnType<typeof setInterval> | null = null;
+		let startWallMs = 0;
+
+		function stopPlayback(): void {
+			playing = false;
+			if (ticker) {
+				clearInterval(ticker);
+				ticker = null;
+			}
+			playBtn.textContent = "▶ Play";
+			timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
+			engine.stop();
+		}
+
+		playBtn.addEventListener("click", () => {
+			if (playing) {
+				stopPlayback();
 				return;
 			}
 
-			const totalMs = recording.events.reduce(
-				(max, e) => Math.max(max, e.ms),
-				0,
-			);
+			playing = true;
+			playBtn.textContent = "■ Stop";
+			startWallMs = performance.now();
 
-			const container = el.createDiv({ cls: "sheet-music-midi-player" });
-			const controls = container.createDiv({ cls: "sheet-music-midi-controls" });
-			const playBtn = controls.createEl("button", { cls: "sheet-music-midi-btn" });
-			playBtn.textContent = "▶ Play";
+			ticker = setInterval(() => {
+				const elapsed = performance.now() - startWallMs;
+				timeDisplay.textContent = `${formatDuration(elapsed)} / ${formatDuration(totalMs)}`;
+			}, 250);
 
-			const timeDisplay = controls.createSpan({ cls: "sheet-music-midi-time" });
-			timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
-
-			const engine = new MidiPlayerEngine();
-			let playing = false;
-			let ticker: ReturnType<typeof setInterval> | null = null;
-			let startWallMs = 0;
-
-			function stopPlayback(): void {
-				playing = false;
+			engine.play(events, () => {
 				if (ticker) {
 					clearInterval(ticker);
 					ticker = null;
 				}
+				playing = false;
 				playBtn.textContent = "▶ Play";
-				timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
-				engine.stop();
-			}
-
-			playBtn.addEventListener("click", () => {
-				if (playing) {
-					stopPlayback();
-					return;
-				}
-
-				playing = true;
-				playBtn.textContent = "■ Stop";
-				startWallMs = performance.now();
-
-				ticker = setInterval(() => {
-					const elapsed = performance.now() - startWallMs;
-					timeDisplay.textContent = `${formatDuration(elapsed)} / ${formatDuration(totalMs)}`;
-				}, 250);
-
-				engine.play(recording.events, () => {
-					if (ticker) {
-						clearInterval(ticker);
-						ticker = null;
-					}
-					playing = false;
-					playBtn.textContent = "▶ Play";
-					timeDisplay.textContent = `${formatDuration(totalMs)} / ${formatDuration(totalMs)}`;
-				});
+				timeDisplay.textContent = `${formatDuration(totalMs)} / ${formatDuration(totalMs)}`;
 			});
-		},
-	);
+		});
+	});
 }

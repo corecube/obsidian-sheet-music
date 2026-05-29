@@ -61,8 +61,8 @@ export function registerMidiCapturePackage(plugin: Plugin): void {
 
 		if (events.length === 0) return;
 
-		const json = JSON.stringify({ v: 1, events });
-		const block = `\`\`\`midi\n${json}\n\`\`\`\n`;
+		const body = events.map((e) => `${Math.round(e.ms)} ${e.d.join(" ")}`).join("\n");
+		const block = `\`\`\`midi\n${body}\n\`\`\`\n`;
 		editor.replaceRange(block, editor.getCursor());
 	}
 
