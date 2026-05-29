@@ -26,7 +26,6 @@ export interface PianoMonitorPackageSettings {
 
 export interface MidiCapturePackageSettings {
 	enabled: boolean;
-	bpm: number;
 }
 
 export interface SheetMusicSettings {
@@ -65,7 +64,6 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 		},
 		midiCapture: {
 			enabled: true,
-			bpm: 120,
 		},
 		pianoMonitor: {
 			enabled: true,
@@ -261,33 +259,6 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
-
-		new Setting(containerEl)
-			.setName("Capture BPM")
-			.setDesc(
-				"Tempo used to quantize captured note durations into ABC notation.",
-			)
-			.addText((text) => {
-				text.setPlaceholder(
-					String(DEFAULT_SETTINGS.packages.midiCapture.bpm),
-				);
-				text.setValue(
-					String(this.plugin.settings.packages.midiCapture.bpm),
-				);
-				text.inputEl.type = "number";
-				text.inputEl.min = "20";
-				text.inputEl.max = "300";
-				text.inputEl.step = "1";
-				text.onChange(async (value) => {
-					this.plugin.settings.packages.midiCapture.bpm =
-						parsePositiveNumber(
-							value,
-							DEFAULT_SETTINGS.packages.midiCapture.bpm,
-							20,
-						);
-					await this.plugin.saveSettings();
-				});
-			});
 
 		new Setting(containerEl).setName("Piano monitor").setHeading();
 

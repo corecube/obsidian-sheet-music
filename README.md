@@ -12,8 +12,9 @@ Render playable music notation inside your Obsidian notes. Supports ABC notation
 | `strumming` | Renders rhythm patterns with timing labels and animated playback |
 | `chords` | Renders lyric-and-chord sheets with chord diagrams and transposition |
 | `progression` | Shows chord progressions with Roman numeral analysis |
+| `midi` | Plays back a captured MIDI recording with transport controls and `.mid` export |
 
-**MIDI capture** — connect a keyboard and transcribe live playing directly into an `abc` block.
+**MIDI capture** — connect a keyboard and record live playing directly into a `midi` block.
 
 ---
 
@@ -170,11 +171,24 @@ Tonal's convention: minor chords use uppercase + `m` suffix (`IIm`, `VIm`), borr
 
 ### MIDI capture
 
-1. Connect a MIDI keyboard. The ribbon button (music note icon) appears automatically.
-2. Open a note in edit mode and place the cursor where you want the notation inserted.
+#### Recording
+
+1. Open a note in edit mode and place the cursor where you want the recording inserted.
+2. Connect a MIDI keyboard.
 3. Click **Start MIDI capture** — the icon changes to a stop square.
 4. Play on your keyboard.
-5. Click the button again to stop. An `abc` block is inserted at the cursor.
+5. Click the button again to stop. A `midi` block is inserted at the cursor.
+
+#### Playback
+
+The `midi` block renders an inline player:
+
+- **▶ / ■** — play or stop the recording
+- **time display** — shows elapsed time and total duration
+- **↓** — exports a Standard MIDI File (`.mid`) for use in a DAW or notation app
+- **device label** — shows the MIDI output device being used, or `built-in` when falling back to Web Audio oscillator synthesis
+
+If a MIDI output device is connected, playback is routed to it. The player automatically switches devices without needing to reload the note.
 
 ---
 

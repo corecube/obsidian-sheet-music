@@ -2,7 +2,34 @@ import { renderAbc } from "abcjs";
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { Chord, Key, Note, Scale, ScaleType } from "tonal";
 import { MidiListener } from "../midi-capture/midi-listener";
-import { ABC_KEYS, KeyName, midiNoteToAbcPitch } from "../midi-capture/note-to-abc";
+
+export const ABC_KEYS = ["C", "G", "F", "D", "Bb", "A", "Eb", "E", "Ab"] as const;
+export type KeyName = (typeof ABC_KEYS)[number];
+
+const KEY_TABLES: Record<KeyName, readonly string[]> = {
+	C:  ["C", "^C", "D", "^D", "E", "F",  "^F", "G", "^G", "A", "^A", "B"],
+	G:  ["C", "^C", "D", "^D", "E", "=F", "F",  "G", "^G", "A", "^A", "B"],
+	D:  ["=C","C",  "D", "^D", "E", "=F", "F",  "G", "^G", "A", "^A", "B"],
+	A:  ["=C","C",  "D", "^D", "E", "=F", "F",  "=G","G",  "A", "^A", "B"],
+	E:  ["=C","C",  "=D","D",  "E", "=F", "F",  "=G","G",  "A", "^A", "B"],
+	F:  ["C", "^C", "D", "_E", "E", "F",  "^F", "G", "_A", "A", "B",  "=B"],
+	Bb: ["C", "^C", "D", "E",  "=E","F",  "^F", "G", "_A", "A", "B",  "=B"],
+	Eb: ["C", "^C", "D", "E",  "=E","F",  "^F", "G", "A",  "=A","B",  "=B"],
+	Ab: ["C", "D",  "=D","E",  "=E","F",  "^F", "G", "A",  "=A","B",  "=B"],
+};
+
+function midiNoteToAbcPitch(midiNote: number, key: KeyName = "C"): string {
+	const semitone = midiNote % 12;
+	const octave = Math.floor(midiNote / 12) - 1;
+	const raw = KEY_TABLES[key][semitone] ?? "C";
+	const accidental = raw.length > 1 ? raw[0]! : "";
+	const letter = raw[raw.length - 1] ?? "C";
+	if (octave === 4) return accidental + letter;
+	if (octave === 5) return accidental + letter.toLowerCase();
+	if (octave > 5) return accidental + letter.toLowerCase() + "'".repeat(octave - 5);
+	if (octave === 3) return accidental + letter + ",";
+	return accidental + letter + ",".repeat(4 - octave);
+}
 
 export const PIANO_MONITOR_VIEW_TYPE = "piano-monitor";
 
@@ -175,16 +202,18 @@ export class PianoMonitorView extends ItemView {
 	}
 
 	private async connectMidi(): Promise<void> {
-		const listener = new MidiListener(
-			(midi) => {
-				this.heldNotes.add(midi);
-				this.updateDisplay();
-			},
-			(midi) => {
-				this.heldNotes.delete(midi);
-				this.updateDisplay();
-			},
-		);
+		const listener = new MidiListener((data) => {
+			const status = data[0] ?? 0;
+			const note = data[1] ?? 0;
+			const velocity = data[2] ?? 0;
+			const channel = status & 0xf0;
+			if (channel === 0x90 && velocity > 0) {
+				this.heldNotes.add(note);
+			} else if (channel === 0x80 || (channel === 0x90 && velocity === 0)) {
+				this.heldNotes.delete(note);
+			}
+			this.updateDisplay();
+		});
 		try {
 			const device = await listener.start();
 			this.midiListener = listener;

@@ -378,3 +378,42 @@
 	font-size: var(--font-ui-small);
 	letter-spacing: 0.1em;
 }
+
+.sheet-music-midi-player {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	padding: 10px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.sheet-music-midi-controls {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.sheet-music-midi-btn {
+	height: 28px;
+	padding: 0 12px;
+	cursor: pointer;
+	font-size: var(--font-ui-small);
+}
+
+.sheet-music-midi-time {
+	font-size: var(--font-ui-small);
+	font-family: var(--font-monospace);
+	color: var(--text-muted);
+}
+
+.sheet-music-midi-status {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+}
+
+.sheet-music-midi-empty {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin: 0;
+}
