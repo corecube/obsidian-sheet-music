@@ -12,7 +12,7 @@ function parseMidiEvents(source: string): MidiEvent[] {
 		.split("\n")
 		.flatMap((line) => {
 			const parts = line.trim().split(/\s+/).map(Number);
-			if (parts.length < 2 || parts.some(isNaN)) return [];
+			if (parts.length < 2 || parts.some(Number.isNaN)) return [];
 			const [ms, ...d] = parts;
 			return [{ ms: ms!, d }];
 		});
@@ -26,7 +26,7 @@ function formatDuration(ms: number): string {
 }
 
 export function registerMidiPlayerRenderer(plugin: Plugin): void {
-	plugin.registerMarkdownCodeBlockProcessor("midi", (source, el) => {
+	plugin.registerMarkdownCodeBlockProcessor("midi", async (source, el) => {
 		const events = parseMidiEvents(source);
 
 		if (events.length === 0) {
@@ -47,10 +47,18 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 		const timeDisplay = controls.createSpan({ cls: "sheet-music-midi-time" });
 		timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
 
+		const status = container.createDiv({ cls: "sheet-music-midi-status" });
+		status.textContent = "Initializing…";
+
 		const engine = new MidiPlayerEngine();
 		let playing = false;
 		let ticker: ReturnType<typeof setInterval> | null = null;
 		let startWallMs = 0;
+
+		const initResult: { outputName: string | null } = await engine.init();
+		status.textContent = initResult.outputName
+			? `MIDI output: ${initResult.outputName}`
+			: "Built-in audio (connect a MIDI device for exact playback)";
 
 		function stopPlayback(): void {
 			playing = false;
