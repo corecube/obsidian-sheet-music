@@ -14,10 +14,6 @@ interface MidiAccessResult {
 	inputs: { forEach(cb: (input: MidiInputPort) => void): void };
 }
 
-type NoteOnCallback = (midiNote: number, timeMs: number) => void;
-type NoteOffCallback = (midiNote: number, timeMs: number) => void;
-type SustainCallback = (down: boolean, timeMs: number) => void;
-
 function requestMidiAccess(): Promise<MidiAccessResult> {
 	const nav = navigator as unknown as {
 		requestMIDIAccess?: () => Promise<MidiAccessResult>;
@@ -30,16 +26,10 @@ function requestMidiAccess(): Promise<MidiAccessResult> {
 	return nav.requestMIDIAccess();
 }
 
-const SUSTAIN_CC = 64;
-
 export class MidiListener {
 	private input: MidiInputPort | null = null;
 
-	constructor(
-		private readonly onNoteOn: NoteOnCallback,
-		private readonly onNoteOff: NoteOffCallback,
-		private readonly onSustainChange?: SustainCallback,
-	) {}
+	constructor(private readonly onMessage: (data: number[]) => void) {}
 
 	async start(): Promise<string> {
 		const access = await requestMidiAccess();
@@ -67,23 +57,8 @@ export class MidiListener {
 	}
 
 	private readonly handleMessage = (event: MidiMessageData): void => {
-		const { data, timeStamp } = event;
+		const { data } = event;
 		if (!data || data.length < 2) return;
-
-		const status = data[0];
-		const note = data[1];
-		const velocity = data[2] ?? 0;
-
-		if (status === undefined || note === undefined) return;
-
-		const channel = status & 0xf0;
-
-		if (channel === 0x90 && velocity > 0) {
-			this.onNoteOn(note, timeStamp);
-		} else if (channel === 0x80 || (channel === 0x90 && velocity === 0)) {
-			this.onNoteOff(note, timeStamp);
-		} else if (channel === 0xb0 && note === SUSTAIN_CC && this.onSustainChange) {
-			this.onSustainChange(velocity >= 64, timeStamp);
-		}
+		this.onMessage(Array.from(data));
 	};
 }
