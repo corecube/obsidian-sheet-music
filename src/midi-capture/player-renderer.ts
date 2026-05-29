@@ -1,5 +1,6 @@
 import type { Plugin } from "obsidian";
 import { MidiPlayerEngine } from "./player-engine";
+import { exportToMidiFile } from "./smf-export";
 
 interface MidiEvent {
 	d: number[];
@@ -46,6 +47,11 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 
 		const timeDisplay = controls.createSpan({ cls: "sheet-music-midi-time" });
 		timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
+
+		const exportBtn = controls.createEl("button", { cls: "sheet-music-midi-btn" });
+		exportBtn.textContent = "↓";
+		exportBtn.title = "Export as .mid";
+		exportBtn.addEventListener("click", () => { exportToMidiFile(events); });
 
 		const status = controls.createSpan({ cls: "sheet-music-midi-status" });
 		status.textContent = "…";
