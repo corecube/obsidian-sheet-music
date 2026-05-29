@@ -42,13 +42,13 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 		const container = el.createDiv({ cls: "sheet-music-midi-player" });
 		const controls = container.createDiv({ cls: "sheet-music-midi-controls" });
 		const playBtn = controls.createEl("button", { cls: "sheet-music-midi-btn" });
-		playBtn.textContent = "▶ Play";
+		playBtn.textContent = "▶";
 
 		const timeDisplay = controls.createSpan({ cls: "sheet-music-midi-time" });
 		timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
 
-		const status = container.createDiv({ cls: "sheet-music-midi-status" });
-		status.textContent = "Initializing…";
+		const status = controls.createSpan({ cls: "sheet-music-midi-status" });
+		status.textContent = "…";
 
 		const engine = new MidiPlayerEngine();
 		let playing = false;
@@ -56,9 +56,7 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 		let startWallMs = 0;
 
 		const updateStatus = (outputName: string | null): void => {
-			status.textContent = outputName
-				? `MIDI output: ${outputName}`
-				: "Built-in audio (connect a MIDI device for exact playback)";
+			status.textContent = outputName ?? "built-in";
 		};
 		const initResult: { outputName: string | null } = await engine.init(updateStatus);
 		updateStatus(initResult.outputName);
@@ -69,7 +67,7 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 				clearInterval(ticker);
 				ticker = null;
 			}
-			playBtn.textContent = "▶ Play";
+			playBtn.textContent = "▶";
 			timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
 			engine.stop();
 		}
@@ -81,7 +79,7 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 			}
 
 			playing = true;
-			playBtn.textContent = "■ Stop";
+			playBtn.textContent = "■";
 			startWallMs = performance.now();
 
 			ticker = setInterval(() => {
@@ -95,7 +93,7 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 					ticker = null;
 				}
 				playing = false;
-				playBtn.textContent = "▶ Play";
+				playBtn.textContent = "▶";
 				timeDisplay.textContent = `${formatDuration(totalMs)} / ${formatDuration(totalMs)}`;
 			});
 		});
