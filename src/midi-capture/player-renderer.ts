@@ -55,10 +55,13 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 		let ticker: ReturnType<typeof setInterval> | null = null;
 		let startWallMs = 0;
 
-		const initResult: { outputName: string | null } = await engine.init();
-		status.textContent = initResult.outputName
-			? `MIDI output: ${initResult.outputName}`
-			: "Built-in audio (connect a MIDI device for exact playback)";
+		const updateStatus = (outputName: string | null): void => {
+			status.textContent = outputName
+				? `MIDI output: ${outputName}`
+				: "Built-in audio (connect a MIDI device for exact playback)";
+		};
+		const initResult: { outputName: string | null } = await engine.init(updateStatus);
+		updateStatus(initResult.outputName);
 
 		function stopPlayback(): void {
 			playing = false;

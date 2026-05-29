@@ -7,6 +7,7 @@ interface MidiOutputPort {
 
 interface MidiAccessWithOutputs {
 	outputs: { forEach(cb: (output: MidiOutputPort) => void): void };
+	onstatechange: (() => void) | null;
 }
 
 function requestMidiAccessWithOutputs(): Promise<MidiAccessWithOutputs> {
@@ -24,15 +25,21 @@ export class MidiPlayerEngine {
 	private output: MidiOutputPort | null = null;
 	private audioContext: AudioContext | null = null;
 
-	async init(): Promise<{ outputName: string | null }> {
+	async init(onOutputChange?: (name: string | null) => void): Promise<{ outputName: string | null }> {
 		try {
 			const access = await requestMidiAccessWithOutputs();
-			const outputs: MidiOutputPort[] = [];
-			access.outputs.forEach((out) => outputs.push(out));
-			if (outputs[0]) {
-				this.output = outputs[0];
-				return { outputName: outputs[0].name ?? "MIDI device" };
-			}
+
+			const rescan = (): void => {
+				const outputs: MidiOutputPort[] = [];
+				access.outputs.forEach((out) => outputs.push(out));
+				this.output = outputs[0] ?? null;
+				onOutputChange?.(this.output?.name ?? null);
+			};
+
+			access.onstatechange = rescan;
+			rescan();
+
+			return { outputName: this.output?.name ?? null };
 		} catch {
 			// No MIDI output available — fall through to oscillator.
 		}
