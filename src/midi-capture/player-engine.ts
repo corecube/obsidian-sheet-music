@@ -1,43 +1,8 @@
 import type { MidiEvent } from "./capture-session";
 
-interface MidiOutputPort {
-	readonly name?: string | null;
-	send(data: number[]): void;
-}
-
-interface MidiAccessWithOutputs {
-	outputs: { forEach(cb: (output: MidiOutputPort) => void): void };
-}
-
-function requestMidiAccessWithOutputs(): Promise<MidiAccessWithOutputs> {
-	const nav = navigator as unknown as {
-		requestMIDIAccess?: () => Promise<MidiAccessWithOutputs>;
-	};
-	if (!nav.requestMIDIAccess) {
-		return Promise.reject(new Error("Web MIDI API not available."));
-	}
-	return nav.requestMIDIAccess();
-}
-
 export class MidiPlayerEngine {
 	private timers: ReturnType<typeof setTimeout>[] = [];
-	private output: MidiOutputPort | null = null;
 	private audioContext: AudioContext | null = null;
-
-	async init(): Promise<{ outputName: string | null }> {
-		try {
-			const access = await requestMidiAccessWithOutputs();
-			const outputs: MidiOutputPort[] = [];
-			access.outputs.forEach((out) => outputs.push(out));
-			if (outputs[0]) {
-				this.output = outputs[0];
-				return { outputName: outputs[0].name ?? "MIDI device" };
-			}
-		} catch {
-			// No MIDI output available — fall through to oscillator.
-		}
-		return { outputName: null };
-	}
 
 	play(events: MidiEvent[], onEnd?: () => void): void {
 		this.stop();
@@ -47,16 +12,11 @@ export class MidiPlayerEngine {
 		for (const evt of events) {
 			this.timers.push(
 				setTimeout(() => {
-					if (this.output) {
-						this.output.send(evt.d);
-					} else {
-						this.playOscillator(evt.d);
-					}
+					this.playOscillator(evt.d);
 				}, evt.ms),
 			);
 		}
 
-		// Fire onEnd slightly after the last event.
 		this.timers.push(
 			setTimeout(() => {
 				this.timers = [];
@@ -68,12 +28,6 @@ export class MidiPlayerEngine {
 	stop(): void {
 		for (const t of this.timers) clearTimeout(t);
 		this.timers = [];
-		// Send all-notes-off so no MIDI notes get stuck.
-		try {
-			this.output?.send([0xb0, 123, 0]);
-		} catch {
-			// Ignore send errors on stop.
-		}
 	}
 
 	private getAudioContext(): AudioContext {

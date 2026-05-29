@@ -1,6 +1,10 @@
 import type { Plugin } from "obsidian";
-import type { MidiEvent } from "./capture-session";
 import { MidiPlayerEngine } from "./player-engine";
+
+interface MidiEvent {
+	d: number[];
+	ms: number;
+}
 
 interface MidiRecording {
 	v: number;
@@ -57,18 +61,10 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 			const timeDisplay = controls.createSpan({ cls: "sheet-music-midi-time" });
 			timeDisplay.textContent = `0:00 / ${formatDuration(totalMs)}`;
 
-			const status = container.createDiv({ cls: "sheet-music-midi-status" });
-			status.textContent = "Initializing…";
-
 			const engine = new MidiPlayerEngine();
 			let playing = false;
 			let ticker: ReturnType<typeof setInterval> | null = null;
 			let startWallMs = 0;
-
-			const { outputName } = await engine.init();
-			status.textContent = outputName
-				? `MIDI output: ${outputName}`
-				: "Built-in audio (connect a MIDI device for exact playback)";
 
 			function stopPlayback(): void {
 				playing = false;
