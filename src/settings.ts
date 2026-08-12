@@ -18,6 +18,7 @@ export interface AbcPackageSettings {
 export interface ChordsPackageSettings {
 	enabled: boolean;
 	defaultExpandTools: boolean;
+	translateTargetLanguage: string;
 }
 
 export interface PianoMonitorPackageSettings {
@@ -61,6 +62,7 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 		chords: {
 			enabled: true,
 			defaultExpandTools: false,
+			translateTargetLanguage: "en",
 		},
 		midiCapture: {
 			enabled: true,
@@ -240,6 +242,27 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName("Translation target language")
+			.setDesc(
+				'ISO language code (e.g. "en", "de", "es") used by the Translate button in chord blocks.',
+			)
+			.addText((text) => {
+				text.setPlaceholder("en")
+					.setValue(
+						this.plugin.settings.packages.chords
+							.translateTargetLanguage,
+					)
+					.onChange(async (value) => {
+						const lang = value.trim().toLowerCase();
+						this.plugin.settings.packages.chords.translateTargetLanguage =
+							lang ||
+							DEFAULT_SETTINGS.packages.chords
+								.translateTargetLanguage;
+						await this.plugin.saveSettings();
+					});
+			});
 
 		new Setting(containerEl).setName("MIDI capture").setHeading();
 

@@ -281,6 +281,11 @@
 	font-weight: 600;
 }
 
+.chords-notation-line-translation {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
 .chords-notation-token {
 	font-weight: 600;
 }
