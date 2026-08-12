@@ -19,6 +19,7 @@ export interface ChordsPackageSettings {
 	enabled: boolean;
 	defaultExpandTools: boolean;
 	translateTargetLanguage: string;
+	showTranslations: boolean;
 }
 
 export interface PianoMonitorPackageSettings {
@@ -63,6 +64,7 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 			enabled: true,
 			defaultExpandTools: false,
 			translateTargetLanguage: "en",
+			showTranslations: true,
 		},
 		midiCapture: {
 			enabled: true,

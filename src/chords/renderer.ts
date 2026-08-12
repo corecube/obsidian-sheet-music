@@ -1,9 +1,4 @@
-import {
-	MarkdownPostProcessorContext,
-	MarkdownView,
-	Notice,
-	Plugin,
-} from "obsidian";
+import { MarkdownPostProcessorContext, MarkdownView, Plugin } from "obsidian";
 import { Chord } from "svguitar";
 import type SheetMusicPlugin from "../main";
 import { lookupChord, parseCustomChordDefs } from "./guitar-chord";
@@ -17,13 +12,8 @@ import {
 } from "./renderer-logic";
 import { Progression } from "tonal";
 import { transposeSource } from "./transpose";
-import {
-	TRANSLATION_PREFIX,
-	collectTranslatableLines,
-	insertTranslations,
-	isTranslationLine,
-} from "./translate-logic";
-import { translateLines } from "./translate-service";
+import { TRANSLATION_PREFIX, isTranslationLine } from "./translate-logic";
+import { registerTranslateRibbon } from "./translate-command";
 
 const FRET_STRING_RE = /^[xX0-9]+$/;
 
@@ -89,69 +79,15 @@ class ChordsBlockRenderer {
 		);
 	}
 
-	private async applyTranslate(btn: HTMLButtonElement): Promise<void> {
-		const info = this.ctx.getSectionInfo(this.el);
-		if (!info) {
-			new Notice("Translate: could not locate the code block in the note.");
-			return;
-		}
-		const { lineStart, lineEnd } = info;
-		if (lineStart + 1 > lineEnd - 1) return;
-		const file = this.plugin.app.vault.getFileByPath(this.ctx.sourcePath);
-		if (!file) {
-			new Notice("Translate: could not find the note file.");
-			return;
-		}
-
-		const data = await this.plugin.app.vault.read(file);
-		const source = data
-			.split("\n")
-			.slice(lineStart + 1, lineEnd)
-			.join("\n");
-
-		const entries = collectTranslatableLines(source);
-		if (entries.length === 0) {
-			new Notice("No lyric lines to translate.");
-			return;
-		}
-
+	private toggleTranslations(): void {
 		const chordsPlugin = this.plugin as SheetMusicPlugin;
-		const lang =
-			chordsPlugin.settings.packages.chords.translateTargetLanguage;
-
-		btn.disabled = true;
-		btn.setText("Translating…");
-		try {
-			const translations = await translateLines(
-				entries.map((entry) => entry.text),
-				lang,
-			);
-			let conflict = false;
-			await this.plugin.app.vault.process(file, (current) => {
-				const lines = current.split("\n");
-				if (lines.slice(lineStart + 1, lineEnd).join("\n") !== source) {
-					conflict = true;
-					return current;
-				}
-				return [
-					...lines.slice(0, lineStart + 1),
-					insertTranslations(source, entries, translations),
-					...lines.slice(lineEnd),
-				].join("\n");
-			});
-			if (conflict) {
-				new Notice("Note changed during translation; aborted.");
-			}
-		} catch (error) {
-			console.error("Sheet music: translation failed", error);
-			new Notice(
-				"Translation failed: " +
-					(error instanceof Error ? error.message : String(error)),
-			);
-		} finally {
-			btn.disabled = false;
-			btn.setText("Translate");
-		}
+		const settings = chordsPlugin.settings.packages.chords;
+		settings.showTranslations = !settings.showTranslations;
+		document.body.toggleClass(
+			"sheet-music-hide-translations",
+			!settings.showTranslations,
+		);
+		void chordsPlugin.saveSettings();
 	}
 
 	private chordNames(source: string): string[] {
@@ -210,10 +146,17 @@ class ChordsBlockRenderer {
 		btnUp.addEventListener("click", () => this.applyTranspose(1));
 		const btnTranslate = controls.createEl("button", {
 			cls: "chords-transpose-btn chords-translate-btn",
-			text: "Translate",
+		});
+		btnTranslate.createSpan({
+			cls: "chords-translate-label-hide",
+			text: "Hide translation",
+		});
+		btnTranslate.createSpan({
+			cls: "chords-translate-label-show",
+			text: "Show translation",
 		});
 		btnTranslate.addEventListener("click", () => {
-			void this.applyTranslate(btnTranslate);
+			this.toggleTranslations();
 		});
 
 		const names = this.chordNames(source);
@@ -229,6 +172,15 @@ class ChordsBlockRenderer {
 }
 
 export function registerChordsPackage(plugin: Plugin): void {
+	const chordsPlugin = plugin as SheetMusicPlugin;
+	document.body.toggleClass(
+		"sheet-music-hide-translations",
+		!chordsPlugin.settings.packages.chords.showTranslations,
+	);
+	plugin.register(() =>
+		document.body.removeClass("sheet-music-hide-translations"),
+	);
+	registerTranslateRibbon(plugin);
 	plugin.registerMarkdownCodeBlockProcessor("chords", (source, el, ctx) => {
 		new ChordsBlockRenderer(plugin, el, ctx).render(source);
 	});

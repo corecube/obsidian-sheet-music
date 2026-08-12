@@ -86,6 +86,35 @@ export function parseGtxResponse(json: unknown): string {
 	return text;
 }
 
+export interface ChordsBlock {
+	start: number;
+	end: number;
+}
+
+const FENCE_OPEN_RE = /^(`{3,})(.*)$/;
+
+export function findChordsBlocks(lines: string[]): ChordsBlock[] {
+	const blocks: ChordsBlock[] = [];
+	for (let i = 0; i < lines.length; i++) {
+		const open = FENCE_OPEN_RE.exec(lines[i] ?? "");
+		if (!open) continue;
+		const fence = open[1] ?? "";
+		const info = (open[2] ?? "").trim();
+		const closeRe = new RegExp(`^\`{${fence.length},}\\s*$`);
+		let end = -1;
+		for (let j = i + 1; j < lines.length; j++) {
+			if (closeRe.test(lines[j] ?? "")) {
+				end = j;
+				break;
+			}
+		}
+		if (end === -1) break;
+		if (info === "chords") blocks.push({ start: i, end });
+		i = end;
+	}
+	return blocks;
+}
+
 export function chunkTexts(
 	texts: string[],
 	maxEncodedLength = 1500,

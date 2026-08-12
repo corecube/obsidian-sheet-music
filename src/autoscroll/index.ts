@@ -7,17 +7,22 @@ import {
 } from "obsidian";
 import {
 	calculateAutoscrollInterval,
+	calculateCompensationFactor,
 	DEFAULT_AUTOSCROLL_SPEED,
 	parseAutoscrollSpeed,
+	ScrollAccumulator,
 } from "./logic";
 
 const AUTOSCROLL_SPEED_KEY = "autoscroll-speed";
+const REMEASURE_TICKS = 100;
 
 class MarkdownAutoscrollController {
 	private buttonEl: HTMLElement;
 	private isRunning = false;
 	private intervalId: number | null = null;
 	private speed = DEFAULT_AUTOSCROLL_SPEED;
+	private accumulator = new ScrollAccumulator(1);
+	private ticks = 0;
 
 	constructor(
 		private readonly plugin: Plugin,
@@ -74,6 +79,11 @@ class MarkdownAutoscrollController {
 
 	private startInterval(): void {
 		const interval = calculateAutoscrollInterval(this.speed);
+		const startEl = this.getScrollElement();
+		this.accumulator = new ScrollAccumulator(
+			startEl ? this.compensationFactor(startEl) : 1,
+		);
+		this.ticks = 0;
 		this.intervalId = window.setInterval(() => {
 			if (!this.isRunning || !this.isPreviewMode()) {
 				this.stop();
@@ -86,8 +96,34 @@ class MarkdownAutoscrollController {
 				return;
 			}
 
-			scrollEl.scrollBy(0, 1);
+			this.ticks++;
+			if (this.ticks % REMEASURE_TICKS === 0) {
+				this.accumulator.setStep(this.compensationFactor(scrollEl));
+			}
+
+			const px = this.accumulator.next();
+			if (px > 0) {
+				scrollEl.scrollBy(0, px);
+			}
 		}, interval);
+	}
+
+	private compensationFactor(scrollEl: HTMLElement): number {
+		return calculateCompensationFactor(
+			scrollEl.scrollHeight,
+			this.measureTranslationHeight(),
+		);
+	}
+
+	private measureTranslationHeight(): number {
+		let total = 0;
+		const els = this.view.contentEl.querySelectorAll<HTMLElement>(
+			".chords-notation-line-translation",
+		);
+		for (const el of Array.from(els)) {
+			total += el.offsetHeight;
+		}
+		return total;
 	}
 
 	private getAutoscrollSpeedForFile(file: TFile | null): number {

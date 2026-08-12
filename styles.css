@@ -286,6 +286,22 @@
 	font-style: italic;
 }
 
+body.sheet-music-hide-translations .chords-notation-line-translation {
+	display: none;
+}
+
+.chords-translate-label-show {
+	display: none;
+}
+
+body.sheet-music-hide-translations .chords-translate-label-hide {
+	display: none;
+}
+
+body.sheet-music-hide-translations .chords-translate-label-show {
+	display: inline;
+}
+
 .chords-notation-token {
 	font-weight: 600;
 }

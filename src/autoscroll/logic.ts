@@ -30,6 +30,41 @@ function clampSpeed(value: number): number {
 	return Math.min(value, MAX_AUTOSCROLL_SPEED);
 }
 
+export const MAX_COMPENSATION_FACTOR = 3;
+
+export function calculateCompensationFactor(
+	scrollHeight: number,
+	translationHeight: number,
+): number {
+	if (scrollHeight <= 0 || translationHeight <= 0) {
+		return 1;
+	}
+	if (translationHeight >= scrollHeight) {
+		return MAX_COMPENSATION_FACTOR;
+	}
+	return Math.min(
+		scrollHeight / (scrollHeight - translationHeight),
+		MAX_COMPENSATION_FACTOR,
+	);
+}
+
+export class ScrollAccumulator {
+	private remainder = 0;
+
+	constructor(private step: number) {}
+
+	setStep(step: number): void {
+		this.step = step;
+	}
+
+	next(): number {
+		this.remainder += this.step;
+		const whole = Math.floor(this.remainder);
+		this.remainder -= whole;
+		return whole;
+	}
+}
+
 export function calculateAutoscrollInterval(speedValue: number): number {
 	const speed = clampSpeed(speedValue);
 	const normalizedSpeed = (speed - 1) / (AUTOSCROLL_STEPS - 1);

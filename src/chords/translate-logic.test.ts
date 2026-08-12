@@ -3,6 +3,7 @@ import {
 	TRANSLATION_PREFIX,
 	chunkTexts,
 	collectTranslatableLines,
+	findChordsBlocks,
 	insertTranslations,
 	isTranslationLine,
 	parseGtxResponse,
@@ -154,6 +155,59 @@ describe("chunkTexts", () => {
 		const chunks = chunkTexts(["short", "x".repeat(50), "tail"], 20);
 		expect(chunks.flat()).toEqual(["short", "x".repeat(50), "tail"]);
 		expect(chunks[1]).toEqual(["x".repeat(50)]);
+	});
+});
+
+describe("findChordsBlocks", () => {
+	it("finds a single chords block", () => {
+		const lines = ["# Song", "```chords", "[C] Hola", "```", "text"];
+		expect(findChordsBlocks(lines)).toEqual([{ start: 1, end: 3 }]);
+	});
+
+	it("finds multiple blocks", () => {
+		const lines = [
+			"```chords",
+			"[C] uno",
+			"```",
+			"",
+			"```chords",
+			"[G] dos",
+			"```",
+		];
+		expect(findChordsBlocks(lines)).toEqual([
+			{ start: 0, end: 2 },
+			{ start: 4, end: 6 },
+		]);
+	});
+
+	it("ignores non-chords fences", () => {
+		const lines = ["```js", "code", "```", "```", "plain", "```"];
+		expect(findChordsBlocks(lines)).toEqual([]);
+	});
+
+	it("drops unclosed chords fences", () => {
+		expect(findChordsBlocks(["```chords", "[C] Hola"])).toEqual([]);
+	});
+
+	it("skips chords fences quoted inside longer fences", () => {
+		const lines = [
+			"````md",
+			"```chords",
+			"[C] Hola",
+			"```",
+			"````",
+			"```chords",
+			"[G] real",
+			"```",
+		];
+		expect(findChordsBlocks(lines)).toEqual([{ start: 5, end: 7 }]);
+	});
+
+	it("allows trailing whitespace but not other suffixes", () => {
+		expect(findChordsBlocks(["```chords  ", "x", "```"])).toEqual([
+			{ start: 0, end: 2 },
+		]);
+		expect(findChordsBlocks(["```chordsx", "x", "```"])).toEqual([]);
 	});
 });
 
