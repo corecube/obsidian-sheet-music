@@ -13,7 +13,7 @@ import {
 import { Progression } from "tonal";
 import { transposeSource } from "./transpose";
 import { TRANSLATION_PREFIX, isTranslationLine } from "./translate-logic";
-import { registerTranslateRibbon } from "./translate-command";
+import { registerTranslateCommands } from "./translate-command";
 
 const FRET_STRING_RE = /^[xX0-9]+$/;
 
@@ -180,7 +180,7 @@ export function registerChordsPackage(plugin: Plugin): void {
 	plugin.register(() =>
 		document.body.removeClass("sheet-music-hide-translations"),
 	);
-	registerTranslateRibbon(plugin);
+	registerTranslateCommands(plugin);
 	plugin.registerMarkdownCodeBlockProcessor("chords", (source, el, ctx) => {
 		new ChordsBlockRenderer(plugin, el, ctx).render(source);
 	});
