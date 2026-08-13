@@ -6,24 +6,26 @@ import {
 	type WorkspaceLeaf,
 } from "obsidian";
 import {
-	calculateAutoscrollInterval,
+	calculateAutoscrollVelocity,
 	calculateViewportCompensationFactor,
 	DEFAULT_AUTOSCROLL_SPEED,
+	FrameAccumulator,
 	type MeasuredLine,
 	parseAutoscrollSpeed,
-	ScrollAccumulator,
 } from "./logic";
 
 const AUTOSCROLL_SPEED_KEY = "autoscroll-speed";
-const REMEASURE_TICKS = 100;
+const REMEASURE_INTERVAL_MS = 2000;
 
 class MarkdownAutoscrollController {
 	private buttonEl: HTMLElement;
 	private isRunning = false;
-	private intervalId: number | null = null;
+	private rafId: number | null = null;
 	private speed = DEFAULT_AUTOSCROLL_SPEED;
-	private accumulator = new ScrollAccumulator(1);
-	private ticks = 0;
+	private accumulator = new FrameAccumulator();
+	private compensation = 1;
+	private lastFrameTime: number | null = null;
+	private lastMeasureTime = 0;
 	private lastMeasuredScrollTop = 0;
 
 	constructor(
@@ -51,9 +53,9 @@ class MarkdownAutoscrollController {
 		}
 
 		this.isRunning = false;
-		if (this.intervalId !== null) {
-			window.clearInterval(this.intervalId);
-			this.intervalId = null;
+		if (this.rafId !== null) {
+			window.cancelAnimationFrame(this.rafId);
+			this.rafId = null;
 		}
 		this.refreshButtonState();
 	}
@@ -76,17 +78,18 @@ class MarkdownAutoscrollController {
 		this.speed = this.getAutoscrollSpeedForFile(this.view.file);
 		this.isRunning = true;
 		this.refreshButtonState();
-		this.startInterval();
+		this.startScrolling();
 	}
 
-	private startInterval(): void {
-		const interval = calculateAutoscrollInterval(this.speed);
+	private startScrolling(): void {
+		const velocity = calculateAutoscrollVelocity(this.speed);
 		const startEl = this.getScrollElement();
-		this.accumulator = new ScrollAccumulator(
-			startEl ? this.compensationFactor(startEl) : 1,
-		);
-		this.ticks = 0;
-		this.intervalId = window.setInterval(() => {
+		this.accumulator = new FrameAccumulator();
+		this.compensation = startEl ? this.compensationFactor(startEl) : 1;
+		this.lastFrameTime = null;
+		this.lastMeasureTime = 0;
+
+		const frame = (now: number): void => {
 			if (!this.isRunning || !this.isPreviewMode()) {
 				this.stop();
 				return;
@@ -98,22 +101,34 @@ class MarkdownAutoscrollController {
 				return;
 			}
 
-			this.ticks++;
+			if (this.lastFrameTime === null) {
+				this.lastFrameTime = now;
+				this.lastMeasureTime = now;
+			}
+			const elapsed = now - this.lastFrameTime;
+			this.lastFrameTime = now;
+
 			const scrolledSinceMeasure = Math.abs(
 				scrollEl.scrollTop - this.lastMeasuredScrollTop,
 			);
 			if (
-				this.ticks % REMEASURE_TICKS === 0 ||
+				now - this.lastMeasureTime >= REMEASURE_INTERVAL_MS ||
 				scrolledSinceMeasure >= scrollEl.clientHeight / 4
 			) {
-				this.accumulator.setStep(this.compensationFactor(scrollEl));
+				this.compensation = this.compensationFactor(scrollEl);
+				this.lastMeasureTime = now;
 			}
 
-			const px = this.accumulator.next();
+			const px = this.accumulator.advance(
+				elapsed,
+				velocity * this.compensation,
+			);
 			if (px > 0) {
 				scrollEl.scrollBy(0, px);
 			}
-		}, interval);
+			this.rafId = window.requestAnimationFrame(frame);
+		};
+		this.rafId = window.requestAnimationFrame(frame);
 	}
 
 	private compensationFactor(scrollEl: HTMLElement): number {

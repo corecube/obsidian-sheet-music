@@ -75,21 +75,24 @@ export function calculateViewportCompensationFactor(
 	);
 }
 
-export class ScrollAccumulator {
+// Longest frame gap that still advances the scroll position — anything
+// larger (backgrounded tab, device sleep) must not cause a sudden jump.
+export const MAX_FRAME_ELAPSED_MS = 250;
+
+export class FrameAccumulator {
 	private remainder = 0;
 
-	constructor(private step: number) {}
-
-	setStep(step: number): void {
-		this.step = step;
-	}
-
-	next(): number {
-		this.remainder += this.step;
+	advance(elapsedMs: number, velocityPxPerSec: number): number {
+		const clamped = Math.min(Math.max(elapsedMs, 0), MAX_FRAME_ELAPSED_MS);
+		this.remainder += (clamped / 1000) * velocityPxPerSec;
 		const whole = Math.floor(this.remainder);
 		this.remainder -= whole;
 		return whole;
 	}
+}
+
+export function calculateAutoscrollVelocity(speedValue: number): number {
+	return 1000 / calculateAutoscrollInterval(speedValue);
 }
 
 export function calculateAutoscrollInterval(speedValue: number): number {

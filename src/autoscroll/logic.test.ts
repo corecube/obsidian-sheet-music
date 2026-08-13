@@ -1,12 +1,14 @@
 import { describe, expect, it } from "@jest/globals";
 import {
 	calculateAutoscrollInterval,
+	calculateAutoscrollVelocity,
 	calculateViewportCompensationFactor,
 	DEFAULT_AUTOSCROLL_SPEED,
+	FrameAccumulator,
 	MAX_COMPENSATION_FACTOR,
+	MAX_FRAME_ELAPSED_MS,
 	type MeasuredLine,
 	parseAutoscrollSpeed,
-	ScrollAccumulator,
 } from "./logic";
 
 const LINE_HEIGHT = 20;
@@ -154,32 +156,56 @@ describe("calculateViewportCompensationFactor", () => {
 	});
 });
 
-describe("ScrollAccumulator", () => {
-	it("yields a constant 1px at factor 1", () => {
-		const acc = new ScrollAccumulator(1);
-		for (let i = 0; i < 10; i++) expect(acc.next()).toBe(1);
+describe("FrameAccumulator", () => {
+	it("yields 1px per frame at 60px/s and 60fps", () => {
+		const acc = new FrameAccumulator();
+		for (let i = 0; i < 10; i++) {
+			expect(acc.advance(1000 / 60, 60)).toBe(1);
+		}
 	});
 
-	it("alternates 1 and 2 at factor 1.5", () => {
-		const acc = new ScrollAccumulator(1.5);
-		expect(acc.next()).toBe(1);
-		expect(acc.next()).toBe(2);
-		expect(acc.next()).toBe(1);
-		expect(acc.next()).toBe(2);
+	it("emits whole pixels and carries the fraction", () => {
+		const acc = new FrameAccumulator();
+		// 0.5px per frame → every second frame scrolls 1px.
+		expect(acc.advance(10, 50)).toBe(0);
+		expect(acc.advance(10, 50)).toBe(1);
+		expect(acc.advance(10, 50)).toBe(0);
+		expect(acc.advance(10, 50)).toBe(1);
 	});
 
-	it("does not drift over many ticks", () => {
-		const acc = new ScrollAccumulator(2.34);
+	it("does not drift over many frames", () => {
+		const acc = new FrameAccumulator();
 		let total = 0;
-		for (let i = 0; i < 100; i++) total += acc.next();
-		expect(Math.abs(total - 2.34 * 100)).toBeLessThanOrEqual(1);
+		for (let i = 0; i < 100; i++) total += acc.advance(16, 77);
+		expect(Math.abs(total - (16 / 1000) * 77 * 100)).toBeLessThanOrEqual(1);
 	});
 
-	it("applies a new step on the next tick", () => {
-		const acc = new ScrollAccumulator(1);
-		expect(acc.next()).toBe(1);
-		acc.setStep(2);
-		expect(acc.next()).toBe(2);
+	it("clamps long frame gaps to avoid jumps", () => {
+		const acc = new FrameAccumulator();
+		const px = acc.advance(60_000, 100);
+		expect(px).toBeLessThanOrEqual((MAX_FRAME_ELAPSED_MS / 1000) * 100);
+	});
+
+	it("ignores negative elapsed time", () => {
+		const acc = new FrameAccumulator();
+		expect(acc.advance(-50, 100)).toBe(0);
+	});
+});
+
+describe("calculateAutoscrollVelocity", () => {
+	it("matches the interval-based rate of 1px per tick", () => {
+		expect(calculateAutoscrollVelocity(1)).toBeCloseTo(
+			1000 / calculateAutoscrollInterval(1),
+		);
+		expect(calculateAutoscrollVelocity(20)).toBeCloseTo(
+			1000 / calculateAutoscrollInterval(20),
+		);
+	});
+
+	it("increases with speed", () => {
+		expect(calculateAutoscrollVelocity(15)).toBeGreaterThan(
+			calculateAutoscrollVelocity(3),
+		);
 	});
 });
 
