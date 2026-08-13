@@ -7,8 +7,9 @@ import {
 } from "obsidian";
 import {
 	calculateAutoscrollInterval,
-	calculateCompensationFactor,
+	calculateViewportCompensationFactor,
 	DEFAULT_AUTOSCROLL_SPEED,
+	type MeasuredLine,
 	parseAutoscrollSpeed,
 	ScrollAccumulator,
 } from "./logic";
@@ -23,6 +24,7 @@ class MarkdownAutoscrollController {
 	private speed = DEFAULT_AUTOSCROLL_SPEED;
 	private accumulator = new ScrollAccumulator(1);
 	private ticks = 0;
+	private lastMeasuredScrollTop = 0;
 
 	constructor(
 		private readonly plugin: Plugin,
@@ -97,7 +99,13 @@ class MarkdownAutoscrollController {
 			}
 
 			this.ticks++;
-			if (this.ticks % REMEASURE_TICKS === 0) {
+			const scrolledSinceMeasure = Math.abs(
+				scrollEl.scrollTop - this.lastMeasuredScrollTop,
+			);
+			if (
+				this.ticks % REMEASURE_TICKS === 0 ||
+				scrolledSinceMeasure >= scrollEl.clientHeight / 4
+			) {
 				this.accumulator.setStep(this.compensationFactor(scrollEl));
 			}
 
@@ -109,21 +117,38 @@ class MarkdownAutoscrollController {
 	}
 
 	private compensationFactor(scrollEl: HTMLElement): number {
-		return calculateCompensationFactor(
-			scrollEl.scrollHeight,
-			this.measureTranslationHeight(),
-		);
-	}
-
-	private measureTranslationHeight(): number {
-		let total = 0;
-		const els = this.view.contentEl.querySelectorAll<HTMLElement>(
-			".chords-notation-line-translation",
-		);
-		for (const el of Array.from(els)) {
-			total += el.offsetHeight;
+		this.lastMeasuredScrollTop = scrollEl.scrollTop;
+		if (document.body.hasClass("sheet-music-hide-translations")) {
+			return 1;
 		}
-		return total;
+
+		const els = Array.from(
+			this.view.contentEl.querySelectorAll<HTMLElement>(
+				".chords-notation-line",
+			),
+		);
+		const lineHeight = measureSingleLineHeight(els);
+		if (lineHeight <= 0) {
+			return 1;
+		}
+
+		const lines: MeasuredLine[] = els.map((el) => {
+			const rect = el.getBoundingClientRect();
+			return {
+				top: rect.top,
+				height: rect.height,
+				isTranslation: el.classList.contains(
+					"chords-notation-line-translation",
+				),
+			};
+		});
+		const viewportRect = scrollEl.getBoundingClientRect();
+		return calculateViewportCompensationFactor(
+			lines,
+			viewportRect.top,
+			scrollEl.clientHeight,
+			lineHeight,
+		);
 	}
 
 	private getAutoscrollSpeedForFile(file: TFile | null): number {
@@ -259,6 +284,23 @@ export function registerAutoscrollFeature(plugin: Plugin): void {
 	});
 
 	syncControllers();
+}
+
+function measureSingleLineHeight(lineEls: HTMLElement[]): number {
+	const sample = lineEls.find(
+		(el) => !el.classList.contains("chords-notation-line-translation"),
+	);
+	if (!sample) {
+		return 0;
+	}
+	const style = window.getComputedStyle(sample);
+	const lineHeight = Number.parseFloat(style.lineHeight);
+	if (Number.isFinite(lineHeight) && lineHeight > 0) {
+		return lineHeight;
+	}
+	// line-height: normal — approximate with the font's default ratio.
+	const fontSize = Number.parseFloat(style.fontSize);
+	return Number.isFinite(fontSize) && fontSize > 0 ? fontSize * 1.2 : 0;
 }
 
 function thisPluginMarkdownLeaves(plugin: Plugin): WorkspaceLeaf[] {

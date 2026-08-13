@@ -30,20 +30,47 @@ function clampSpeed(value: number): number {
 	return Math.min(value, MAX_AUTOSCROLL_SPEED);
 }
 
-export const MAX_COMPENSATION_FACTOR = 3;
+export const MAX_COMPENSATION_FACTOR = 6;
 
-export function calculateCompensationFactor(
-	scrollHeight: number,
-	translationHeight: number,
+export interface MeasuredLine {
+	top: number;
+	height: number;
+	isTranslation: boolean;
+}
+
+export function calculateViewportCompensationFactor(
+	lines: MeasuredLine[],
+	viewportTop: number,
+	viewportHeight: number,
+	lineHeight: number,
 ): number {
-	if (scrollHeight <= 0 || translationHeight <= 0) {
+	if (viewportHeight <= 0 || lineHeight <= 0) {
 		return 1;
 	}
-	if (translationHeight >= scrollHeight) {
+
+	const viewportBottom = viewportTop + viewportHeight;
+	let totalExcess = 0;
+	for (const line of lines) {
+		if (line.height <= 0) {
+			continue;
+		}
+		const overlap =
+			Math.min(line.top + line.height, viewportBottom) -
+			Math.max(line.top, viewportTop);
+		if (overlap <= 0) {
+			continue;
+		}
+		const excess = line.isTranslation
+			? line.height
+			: Math.max(0, line.height - lineHeight);
+		totalExcess += excess * (overlap / line.height);
+	}
+
+	if (totalExcess >= viewportHeight) {
 		return MAX_COMPENSATION_FACTOR;
 	}
 	return Math.min(
-		scrollHeight / (scrollHeight - translationHeight),
+		viewportHeight / (viewportHeight - totalExcess),
 		MAX_COMPENSATION_FACTOR,
 	);
 }
