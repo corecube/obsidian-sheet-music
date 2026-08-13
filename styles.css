@@ -282,8 +282,7 @@
 }
 
 .chords-notation-line-translation {
-	color: var(--text-muted);
-	font-style: italic;
+	color: var(--text-faint);
 }
 
 body.sheet-music-hide-translations .chords-notation-line-translation {
