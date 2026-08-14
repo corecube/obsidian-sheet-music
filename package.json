@@ -31,7 +31,10 @@
 		"@tombatossals/chords-db": "github:tombatossals/chords-db",
 		"abcjs": "^6.6.2",
 		"obsidian": "latest",
-"svguitar": "^2.5.1",
+		"svguitar": "^2.5.1",
 		"tonal": "^6.4.3"
+	},
+	"overrides": {
+		"svgdom": "npm:empty-npm-package@1.0.0"
 	}
 }

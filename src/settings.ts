@@ -1,4 +1,9 @@
-import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
+import {
+	App,
+	Plugin,
+	PluginSettingTab,
+	type SettingDefinitionItem,
+} from "obsidian";
 
 export interface ProgressionPackageSettings {
 	enabled: boolean;
@@ -96,208 +101,226 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
-		const { containerEl } = this;
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		const abc = DEFAULT_SETTINGS.packages.abc;
+		return [
+			{
+				type: "group",
+				heading: "Packages",
+				items: [
+					{
+						name: "Enable progression package",
+						desc: "Registers the progression code block processor.",
+						control: {
+							type: "toggle",
+							key: "packages.progression.enabled",
+						},
+					},
+					{
+						name: "Enable strumming package",
+						desc: "Registers the strumming code block processor.",
+						control: {
+							type: "toggle",
+							key: "packages.strumming.enabled",
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "ABC notation",
+				items: [
+					{
+						name: "Enable ABC package",
+						desc: "Registers the ABC code block processor.",
+						control: {
+							type: "toggle",
+							key: "packages.abc.enabled",
+						},
+					},
+					{
+						name: "ABC staff width",
+						desc: "Preferred notation width in pixels.",
+						control: {
+							type: "number",
+							key: "packages.abc.staffWidth",
+							defaultValue: abc.staffWidth,
+							placeholder: String(abc.staffWidth),
+							min: 240,
+							step: 1,
+							validate: (value) => {
+								if (!Number.isFinite(value) || value < 240) {
+									return "Enter a number of at least 240.";
+								}
+								return undefined;
+							},
+						},
+					},
+					{
+						name: "ABC scale",
+						desc: "Notation scale multiplier.",
+						control: {
+							type: "number",
+							key: "packages.abc.scale",
+							defaultValue: abc.scale,
+							placeholder: String(abc.scale),
+							min: 0.5,
+							max: 2,
+							step: 0.1,
+							validate: (value) => {
+								if (!Number.isFinite(value) || value < 0.5) {
+									return "Enter a number of at least 0.5.";
+								}
+								return undefined;
+							},
+						},
+					},
+					{
+						name: "ABC instrument",
+						desc: "MIDI program number (0-127) used for ABC playback.",
+						control: {
+							type: "number",
+							key: "packages.abc.instrument",
+							defaultValue: abc.instrument,
+							placeholder: String(abc.instrument),
+							min: 0,
+							max: 127,
+							step: 1,
+							validate: (value) => {
+								if (
+									!Number.isInteger(value) ||
+									value < 0 ||
+									value > 127
+								) {
+									return "Enter a whole number between 0 and 127.";
+								}
+								return undefined;
+							},
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Chord sheet notation",
+				items: [
+					{
+						name: "Enable chords package",
+						desc: "Registers the chords code block processor.",
+						control: {
+							type: "toggle",
+							key: "packages.chords.enabled",
+						},
+					},
+					{
+						name: "Expand chord tools by default",
+						desc: "When enabled, chord diagrams and transpose controls are visible by default. Otherwise they are collapsed behind a toggle.",
+						control: {
+							type: "toggle",
+							key: "packages.chords.defaultExpandTools",
+						},
+					},
+					{
+						name: "Translation target language",
+						desc: 'ISO language code (e.g. "en", "de", "es") used by the Translate button in chord blocks.',
+						control: {
+							type: "text",
+							key: "packages.chords.translateTargetLanguage",
+							defaultValue:
+								DEFAULT_SETTINGS.packages.chords
+									.translateTargetLanguage,
+							placeholder: "en",
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "MIDI capture",
+				items: [
+					{
+						name: "Enable MIDI capture",
+						desc: "Registers the 'Start / Stop MIDI capture' commands for live piano transcription.",
+						control: {
+							type: "toggle",
+							key: "packages.midiCapture.enabled",
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Piano monitor",
+				items: [
+					{
+						name: "Enable piano monitor",
+						desc: "Registers the piano monitor sidebar view command.",
+						control: {
+							type: "toggle",
+							key: "packages.pianoMonitor.enabled",
+						},
+					},
+				],
+			},
+		];
+	}
 
-		containerEl.empty();
-		new Setting(containerEl).setName("Packages").setHeading();
-
-		new Setting(containerEl)
-			.setName("Enable progression package")
-			.setDesc("Registers the progression code block processor.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.packages.progression.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.packages.progression.enabled = value;
-						await this.plugin.saveSettings();
-					}),
+	getControlValue(key: string): unknown {
+		return key
+			.split(".")
+			.reduce<unknown>(
+				(obj, part) =>
+					(obj as Record<string, unknown> | undefined)?.[part],
+				this.plugin.settings,
 			);
+	}
 
-		new Setting(containerEl)
-			.setName("Enable strumming package")
-			.setDesc("Registers the strumming code block processor.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.packages.strumming.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.packages.strumming.enabled = value;
-						await this.plugin.saveSettings();
-					}),
-			);
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		const parts = key.split(".");
+		const last = parts.pop();
+		if (!last) return;
+		let target = this.plugin.settings as unknown as Record<
+			string,
+			unknown
+		>;
+		for (const part of parts) {
+			target = target[part] as Record<string, unknown>;
+		}
+		target[last] = this.coerceControlValue(key, value);
+		await this.plugin.saveSettings();
+	}
 
-		new Setting(containerEl).setName("ABC notation").setHeading();
-
-		new Setting(containerEl)
-			.setName("Enable ABC package")
-			.setDesc("Registers the ABC code block processor.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.packages.abc.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.packages.abc.enabled = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("ABC staff width")
-			.setDesc("Preferred notation width in pixels.")
-			.addText((text) => {
-				text.setPlaceholder(
-					String(DEFAULT_SETTINGS.packages.abc.staffWidth),
+	private coerceControlValue(key: string, value: unknown): unknown {
+		switch (key) {
+			case "packages.abc.staffWidth":
+				return parsePositiveNumber(
+					String(value),
+					DEFAULT_SETTINGS.packages.abc.staffWidth,
+					240,
 				);
-				text.setValue(
-					String(this.plugin.settings.packages.abc.staffWidth),
+			case "packages.abc.scale":
+				return parsePositiveNumber(
+					String(value),
+					DEFAULT_SETTINGS.packages.abc.scale,
+					0.5,
 				);
-				text.inputEl.type = "number";
-				text.inputEl.min = "240";
-				text.onChange(async (value) => {
-					this.plugin.settings.packages.abc.staffWidth =
-						parsePositiveNumber(
-							value,
-							DEFAULT_SETTINGS.packages.abc.staffWidth,
-							240,
-						);
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(containerEl)
-			.setName("ABC scale")
-			.setDesc("Notation scale multiplier.")
-			.addText((text) => {
-				text.setPlaceholder(
-					String(DEFAULT_SETTINGS.packages.abc.scale),
+			case "packages.abc.instrument": {
+				const parsed = parsePositiveNumber(
+					String(value),
+					DEFAULT_SETTINGS.packages.abc.instrument,
+					0,
 				);
-				text.setValue(String(this.plugin.settings.packages.abc.scale));
-				text.inputEl.type = "number";
-				text.inputEl.min = "0.5";
-				text.inputEl.max = "2";
-				text.inputEl.step = "0.1";
-				text.onChange(async (value) => {
-					this.plugin.settings.packages.abc.scale =
-						parsePositiveNumber(
-							value,
-							DEFAULT_SETTINGS.packages.abc.scale,
-							0.5,
-						);
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(containerEl)
-			.setName("ABC instrument")
-			.setDesc("MIDI program number (0-127) used for ABC playback.")
-			.addText((text) => {
-				text.setPlaceholder(
-					String(DEFAULT_SETTINGS.packages.abc.instrument),
+				return Math.min(Math.max(Math.round(parsed), 0), 127);
+			}
+			case "packages.chords.translateTargetLanguage": {
+				const lang = String(value).trim().toLowerCase();
+				return (
+					lang ||
+					DEFAULT_SETTINGS.packages.chords.translateTargetLanguage
 				);
-				text.setValue(
-					String(this.plugin.settings.packages.abc.instrument),
-				);
-				text.inputEl.type = "number";
-				text.inputEl.min = "0";
-				text.inputEl.max = "127";
-				text.inputEl.step = "1";
-				text.onChange(async (value) => {
-					const parsed = parsePositiveNumber(
-						value,
-						DEFAULT_SETTINGS.packages.abc.instrument,
-						0,
-					);
-					this.plugin.settings.packages.abc.instrument = Math.min(
-						Math.max(Math.round(parsed), 0),
-						127,
-					);
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(containerEl).setName("Chord sheet notation").setHeading();
-
-		new Setting(containerEl)
-			.setName("Enable chords package")
-			.setDesc("Registers the chords code block processor.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.packages.chords.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.packages.chords.enabled = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Expand chord tools by default")
-			.setDesc(
-				"When enabled, chord diagrams and transpose controls are visible by default. Otherwise they are collapsed behind a toggle.",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(
-						this.plugin.settings.packages.chords.defaultExpandTools,
-					)
-					.onChange(async (value) => {
-						this.plugin.settings.packages.chords.defaultExpandTools =
-							value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Translation target language")
-			.setDesc(
-				'ISO language code (e.g. "en", "de", "es") used by the Translate button in chord blocks.',
-			)
-			.addText((text) => {
-				text.setPlaceholder("en")
-					.setValue(
-						this.plugin.settings.packages.chords
-							.translateTargetLanguage,
-					)
-					.onChange(async (value) => {
-						const lang = value.trim().toLowerCase();
-						this.plugin.settings.packages.chords.translateTargetLanguage =
-							lang ||
-							DEFAULT_SETTINGS.packages.chords
-								.translateTargetLanguage;
-						await this.plugin.saveSettings();
-					});
-			});
-
-		new Setting(containerEl).setName("MIDI capture").setHeading();
-
-		new Setting(containerEl)
-			.setName("Enable MIDI capture")
-			.setDesc(
-				"Registers the 'Start / Stop MIDI capture' commands for live piano transcription.",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(
-						this.plugin.settings.packages.midiCapture.enabled,
-					)
-					.onChange(async (value) => {
-						this.plugin.settings.packages.midiCapture.enabled =
-							value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl).setName("Piano monitor").setHeading();
-
-		new Setting(containerEl)
-			.setName("Enable piano monitor")
-			.setDesc("Registers the piano monitor sidebar view command.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.packages.pianoMonitor.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.packages.pianoMonitor.enabled =
-							value;
-						await this.plugin.saveSettings();
-					}),
-			);
+			}
+			default:
+				return value;
+		}
 	}
 }
