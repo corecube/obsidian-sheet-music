@@ -70,9 +70,7 @@ export function exportToMidiFile(events: MidiEvent[], filename = "recording.mid"
 
 	const file = new Uint8Array([...header, ...trackHeader, ...track]);
 	const url = URL.createObjectURL(new Blob([file], { type: "audio/midi" }));
-	const a = document.createElement("a");
-	a.href = url;
-	a.download = filename;
+	const a = createEl("a", { href: url, attr: { download: filename } });
 	a.click();
 	URL.revokeObjectURL(url);
 }

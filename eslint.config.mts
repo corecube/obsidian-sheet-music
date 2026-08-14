@@ -8,6 +8,14 @@ export default tseslint.config(
 		languageOptions: {
 			globals: {
 				...globals.browser,
+				// Ambient DOM helpers declared globally by obsidian.d.ts
+				createEl: "readonly",
+				createDiv: "readonly",
+				createSpan: "readonly",
+				createSvg: "readonly",
+				createFragment: "readonly",
+				activeWindow: "readonly",
+				activeDocument: "readonly",
 			},
 			parserOptions: {
 				project: true,

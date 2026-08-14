@@ -214,16 +214,10 @@ export class AbcPlaybackController extends MarkdownRenderChild {
 		}
 
 		this.cursorLine?.remove();
-		this.cursorLine = window.activeDocument.createElementNS(
-			"http://www.w3.org/2000/svg",
-			"line",
-		);
-		this.cursorLine.setAttribute("class", "abcjs-cursor");
-		this.cursorLine.setAttribute("x1", "0");
-		this.cursorLine.setAttribute("y1", "0");
-		this.cursorLine.setAttribute("x2", "0");
-		this.cursorLine.setAttribute("y2", "0");
-		svg.appendChild(this.cursorLine);
+		this.cursorLine = svg.createSvg("line", {
+			cls: "abcjs-cursor",
+			attr: { x1: "0", y1: "0", x2: "0", y2: "0" },
+		});
 	}
 
 	private handleTimingEvent(event: NoteTimingEvent | null): void {

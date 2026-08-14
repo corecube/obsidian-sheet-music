@@ -21,7 +21,7 @@ function requestMidiAccessWithOutputs(): Promise<MidiAccessWithOutputs> {
 }
 
 export class MidiPlayerEngine {
-	private timers: ReturnType<typeof setTimeout>[] = [];
+	private timers: number[] = [];
 	private output: MidiOutputPort | null = null;
 	private audioContext: AudioContext | null = null;
 
@@ -53,7 +53,7 @@ export class MidiPlayerEngine {
 
 		for (const evt of events) {
 			this.timers.push(
-				setTimeout(() => {
+				window.setTimeout(() => {
 					if (this.output) {
 						this.output.send(evt.d);
 					} else {
@@ -64,7 +64,7 @@ export class MidiPlayerEngine {
 		}
 
 		this.timers.push(
-			setTimeout(() => {
+			window.setTimeout(() => {
 				this.timers = [];
 				onEnd?.();
 			}, lastMs + 100),
@@ -72,7 +72,7 @@ export class MidiPlayerEngine {
 	}
 
 	stop(): void {
-		for (const t of this.timers) clearTimeout(t);
+		for (const t of this.timers) window.clearTimeout(t);
 		this.timers = [];
 		try {
 			this.output?.send([0xb0, 123, 0]); // all notes off

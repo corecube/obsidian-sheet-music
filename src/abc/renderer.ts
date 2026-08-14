@@ -14,7 +14,7 @@ function renderInvalidAbcBlock(el: HTMLElement): void {
 }
 
 function renderCustomOptionsError(el: HTMLElement, errorMessage: string): void {
-	el.createEl("div", {
+	el.createDiv({
 		cls: "abc-notation-options-error",
 		text: `Custom ABC options error: ${errorMessage}`,
 	});

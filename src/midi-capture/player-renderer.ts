@@ -58,7 +58,7 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 
 		const engine = new MidiPlayerEngine();
 		let playing = false;
-		let ticker: ReturnType<typeof setInterval> | null = null;
+		let ticker: number | null = null;
 		let startWallMs = 0;
 
 		const updateStatus = (outputName: string | null): void => {
@@ -70,7 +70,7 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 		function stopPlayback(): void {
 			playing = false;
 			if (ticker) {
-				clearInterval(ticker);
+				window.clearInterval(ticker);
 				ticker = null;
 			}
 			playBtn.textContent = "▶";
@@ -88,14 +88,14 @@ export function registerMidiPlayerRenderer(plugin: Plugin): void {
 			playBtn.textContent = "■";
 			startWallMs = performance.now();
 
-			ticker = setInterval(() => {
+			ticker = window.setInterval(() => {
 				const elapsed = performance.now() - startWallMs;
 				timeDisplay.textContent = `${formatDuration(elapsed)} / ${formatDuration(totalMs)}`;
 			}, 250);
 
 			engine.play(events, () => {
 				if (ticker) {
-					clearInterval(ticker);
+					window.clearInterval(ticker);
 					ticker = null;
 				}
 				playing = false;
