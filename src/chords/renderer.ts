@@ -1,37 +1,22 @@
-import { MarkdownPostProcessorContext, MarkdownView, Plugin } from "obsidian";
-import { Chord } from "svguitar";
-import type SheetMusicPlugin from "../main";
-import { lookupChord, parseCustomChordDefs } from "./guitar-chord";
-import { renderGuitarDiagram } from "./guitar-diagram";
-import { lookupPianoChord } from "./piano-chord";
-import { renderPianoDiagram } from "./piano-diagram";
+import { Plugin } from "obsidian";
 import {
 	isSectionLine,
 	splitChordsLines,
 	tokenizeChordsLine,
 } from "./renderer-logic";
-import { Progression } from "tonal";
-import { transposeSource } from "./transpose";
 import { TRANSLATION_PREFIX, isTranslationLine } from "./translate-logic";
 import { registerTranslateCommands } from "./translate-command";
-
-const FRET_STRING_RE = /^[xX0-9]+$/;
+import {
+	applyTranslationsClass,
+	TRANSLATIONS_HIDDEN_CLASS,
+} from "./translation-visibility";
+import { CHORDS_VIEW_TYPE, ChordsView, openChordsView } from "./chords-view";
 
 class ChordsBlockRenderer {
-	private readonly plugin: Plugin;
 	private readonly el: HTMLElement;
-	private readonly ctx: MarkdownPostProcessorContext;
-	private customDefs: Map<string, Chord> = new Map();
-	private currentKey = "";
 
-	constructor(
-		plugin: Plugin,
-		el: HTMLElement,
-		ctx: MarkdownPostProcessorContext,
-	) {
-		this.plugin = plugin;
+	constructor(el: HTMLElement) {
 		this.el = el;
-		this.ctx = ctx;
 	}
 
 	private renderLine(container: HTMLElement, line: string): void {
@@ -59,112 +44,8 @@ class ChordsBlockRenderer {
 		}
 	}
 
-	applyTranspose(semitones: number): void {
-		const info = this.ctx.getSectionInfo(this.el);
-		if (!info) return;
-		const { lineStart, lineEnd } = info;
-		if (lineStart + 1 > lineEnd - 1) return;
-		const view =
-			this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-		if (!view) return;
-		const editor = view.editor;
-		const contentLines: string[] = [];
-		for (let i = lineStart + 1; i <= lineEnd - 1; i++) {
-			contentLines.push(editor.getLine(i));
-		}
-		editor.replaceRange(
-			transposeSource(contentLines.join("\n"), semitones),
-			{ line: lineStart + 1, ch: 0 },
-			{ line: lineEnd - 1, ch: editor.getLine(lineEnd - 1).length },
-		);
-	}
-
-	private toggleTranslations(): void {
-		const chordsPlugin = this.plugin as SheetMusicPlugin;
-		const settings = chordsPlugin.settings.packages.chords;
-		settings.showTranslations = !settings.showTranslations;
-		document.body.toggleClass(
-			"sheet-music-hide-translations",
-			!settings.showTranslations,
-		);
-		void chordsPlugin.saveSettings();
-	}
-
-	private chordNames(source: string): string[] {
-		const seen = new Set<string>(this.customDefs.keys());
-		for (const line of splitChordsLines(source)) {
-			if (isSectionLine(line) || isTranslationLine(line)) continue;
-			for (const token of tokenizeChordsLine(line)) {
-				if (token.type !== "bracket") continue;
-				const name = token.value.slice(1, -1);
-				if (!FRET_STRING_RE.test(name)) seen.add(name);
-			}
-		}
-		return [...seen];
-	}
-
-	private renderDiagram(container: HTMLElement, name: string): void {
-		const group = container.createDiv({ cls: "chords-notation-diagram-group" });
-
-		if (this.currentKey) {
-			const tonicRoot = this.currentKey.endsWith("m")
-				? this.currentKey.slice(0, -1)
-				: this.currentKey;
-			const numeral = Progression.toRomanNumerals(tonicRoot, [name])[0];
-			if (numeral && numeral !== name) {
-				group.createSpan({ cls: "chords-diagram-numeral", text: numeral });
-			}
-		}
-
-		const guitar = this.customDefs.get(name) ?? lookupChord(name);
-		if (guitar) renderGuitarDiagram(group, guitar);
-
-		const piano = lookupPianoChord(name);
-		if (piano) renderPianoDiagram(group, piano);
-	}
-
 	render(source: string): void {
 		this.el.addClass("chords-notation-block");
-		this.customDefs = parseCustomChordDefs(source);
-
-		const fm = this.ctx.frontmatter as Record<string, unknown> | null;
-		this.currentKey = typeof fm?.["key"] === "string" ? fm["key"] : "";
-
-		const tools = this.el.createEl("details", { cls: "chords-notation-tools" });
-		const chordsPlugin = this.plugin as SheetMusicPlugin;
-		tools.open = chordsPlugin.settings.packages.chords.defaultExpandTools;
-		tools.createEl("summary", {
-			cls: "chords-notation-tools-summary",
-			text: "Chord tools",
-		});
-
-		const controls = tools.createDiv({ cls: "chords-notation-controls" });
-		controls.createSpan({ cls: "chords-transpose-label", text: "Transpose" });
-		const btnDown = controls.createEl("button", { cls: "chords-transpose-btn", text: "−1" });
-		const btnUp = controls.createEl("button", { cls: "chords-transpose-btn", text: "+1" });
-		btnDown.addEventListener("click", () => this.applyTranspose(-1));
-		btnUp.addEventListener("click", () => this.applyTranspose(1));
-		const btnTranslate = controls.createEl("button", {
-			cls: "chords-transpose-btn chords-translate-btn",
-		});
-		btnTranslate.createSpan({
-			cls: "chords-translate-label-hide",
-			text: "Hide translation",
-		});
-		btnTranslate.createSpan({
-			cls: "chords-translate-label-show",
-			text: "Show translation",
-		});
-		btnTranslate.addEventListener("click", () => {
-			this.toggleTranslations();
-		});
-
-		const names = this.chordNames(source);
-		if (names.length > 0) {
-			const diagrams = tools.createDiv({ cls: "chords-notation-diagrams" });
-			for (const name of names) this.renderDiagram(diagrams, name);
-		}
-
 		const contentEl = this.el.createDiv({ cls: "chords-notation-content" });
 		for (const line of splitChordsLines(source))
 			this.renderLine(contentEl, line);
@@ -172,16 +53,22 @@ class ChordsBlockRenderer {
 }
 
 export function registerChordsPackage(plugin: Plugin): void {
-	const chordsPlugin = plugin as SheetMusicPlugin;
-	document.body.toggleClass(
-		"sheet-music-hide-translations",
-		!chordsPlugin.settings.packages.chords.showTranslations,
-	);
-	plugin.register(() =>
-		document.body.removeClass("sheet-music-hide-translations"),
-	);
+	applyTranslationsClass(plugin);
+	plugin.register(() => document.body.removeClass(TRANSLATIONS_HIDDEN_CLASS));
 	registerTranslateCommands(plugin);
-	plugin.registerMarkdownCodeBlockProcessor("chords", (source, el, ctx) => {
-		new ChordsBlockRenderer(plugin, el, ctx).render(source);
+	plugin.registerMarkdownCodeBlockProcessor("chords", (source, el) => {
+		new ChordsBlockRenderer(el).render(source);
+	});
+
+	plugin.registerView(CHORDS_VIEW_TYPE, (leaf) => new ChordsView(leaf, plugin));
+	plugin.addRibbonIcon("guitar", "Open chords pane", () => {
+		void openChordsView(plugin);
+	});
+	plugin.addCommand({
+		id: "open-chords-pane",
+		name: "Open chords pane",
+		callback: () => {
+			void openChordsView(plugin);
+		},
 	});
 }

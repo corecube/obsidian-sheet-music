@@ -1,13 +1,16 @@
 import { describe, expect, it } from "@jest/globals";
 import {
+	adjustAutoscrollSpeed,
 	calculateAutoscrollInterval,
 	calculateAutoscrollVelocity,
 	calculateViewportCompensationFactor,
 	DEFAULT_AUTOSCROLL_SPEED,
 	FrameAccumulator,
+	MAX_AUTOSCROLL_SPEED,
 	MAX_COMPENSATION_FACTOR,
 	MAX_FRAME_ELAPSED_MS,
 	type MeasuredLine,
+	MIN_AUTOSCROLL_SPEED,
 	parseAutoscrollSpeed,
 } from "./logic";
 
@@ -244,5 +247,38 @@ describe("calculateAutoscrollInterval", () => {
 		const slow = calculateAutoscrollInterval(3);
 		const fast = calculateAutoscrollInterval(15);
 		expect(fast).toBeLessThan(slow);
+	});
+});
+
+describe("adjustAutoscrollSpeed", () => {
+	it("steps up and down by the delta", () => {
+		expect(adjustAutoscrollSpeed(5, 1)).toBe(6);
+		expect(adjustAutoscrollSpeed(5, -1)).toBe(4);
+		expect(adjustAutoscrollSpeed(5, 3)).toBe(8);
+	});
+
+	it("clamps to the minimum instead of resetting to the default", () => {
+		expect(adjustAutoscrollSpeed(MIN_AUTOSCROLL_SPEED, -1)).toBe(
+			MIN_AUTOSCROLL_SPEED,
+		);
+		expect(adjustAutoscrollSpeed(2, -5)).toBe(MIN_AUTOSCROLL_SPEED);
+	});
+
+	it("clamps to the maximum", () => {
+		expect(adjustAutoscrollSpeed(MAX_AUTOSCROLL_SPEED, 1)).toBe(
+			MAX_AUTOSCROLL_SPEED,
+		);
+		expect(adjustAutoscrollSpeed(18, 10)).toBe(MAX_AUTOSCROLL_SPEED);
+	});
+
+	it("rounds fractional frontmatter speeds to whole steps", () => {
+		expect(adjustAutoscrollSpeed(4.4, 1)).toBe(5);
+		expect(adjustAutoscrollSpeed(4.6, 1)).toBe(6);
+	});
+
+	it("falls back to the default when the current speed is not finite", () => {
+		expect(adjustAutoscrollSpeed(Number.NaN, 1)).toBe(
+			DEFAULT_AUTOSCROLL_SPEED + 1,
+		);
 	});
 });

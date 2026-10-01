@@ -121,7 +121,15 @@ G[320003]
 ```
 ````
 
-Chord diagrams (guitar and piano), transpose controls, and the **Show/Hide translation** toggle are available in the collapsible **chord tools** panel above the sheet. Define custom voicings by appending a fret string directly to the chord name: `Am[x02210]`.
+Define custom voicings by appending a fret string directly to the chord name: `Am[x02210]`.
+
+#### Chords pane
+
+Chord diagrams and transpose controls live in the **Chords** pane in the right sidebar, so they stay visible while the lyrics scroll. The pane follows the active note and lists every chord used across all of its `chords` blocks, deduplicated, with guitar and piano diagrams. If the note's frontmatter has a `key`, each chord also shows its Roman numeral.
+
+**−1** / **+1** transpose every chords block in the active note by a semitone and write the result back to the file.
+
+Open the pane with the guitar icon in the left ribbon (or the **Open chords pane** command). Once open, Obsidian keeps it in the right sidebar across restarts.
 
 #### Lyrics translation
 
@@ -143,7 +151,7 @@ Two ways to run it:
 
 Translation uses Google Translate (internet connection required) with automatic source-language detection. Chord markers are stripped before translating, and section headers, chord-only lines, and custom voicing lines are skipped. Re-running is safe — existing translations are replaced, never duplicated.
 
-The **Show/Hide translation** button in the chord tools panel toggles translation visibility across all chord sheets without deleting anything; the choice persists across restarts.
+The translation toggle (**Aa**) in the note header toggles translation visibility across all chord sheets without deleting anything; the choice persists across restarts. See [Auto-scroll → Header controls](#header-controls).
 
 #### Roman numeral analysis
 
@@ -228,6 +236,22 @@ If omitted or invalid, the default speed of `5` is used.
 
 When translation lines are visible in chord sheets, the scroll speed is automatically compensated for the extra height, so the song takes roughly the same time to scroll through.
 
+#### Header controls
+
+In reading view the note header (top-right) shows, left to right:
+
+```
+[Aa]  [−]  [+]  [⏵₅]
+```
+
+- **Aa** shows or hides chord-sheet translations (only when the chords package is enabled)
+- **−** / **+** make scrolling slower or faster, one step at a time, effective immediately, also while scrolling
+- **⏵** starts and stops auto-scroll; the small **badge** on it shows the current speed. It turns accent-colored when the speed differs from the note's configured value
+
+Speed changes made via the header buttons are temporary: they last until another note is opened in that pane and are never written back to the frontmatter.
+
+The header translation toggle changes the global setting, so it applies to every chord sheet.
+
 ---
 
 ## Settings
@@ -243,7 +267,6 @@ Open **Settings → Sheet Music** to configure each package independently.
 | ABC          | MIDI instrument               | 0 (Piano) |
 | Strumming    | Enable                        | on        |
 | Chords       | Enable                        | on        |
-| Chords       | Expand chord tools by default | off       |
 | Chords       | Translation target language   | `en`      |
 | MIDI Capture | Enable                        | on        |
 

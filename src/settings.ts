@@ -22,7 +22,6 @@ export interface AbcPackageSettings {
 
 export interface ChordsPackageSettings {
 	enabled: boolean;
-	defaultExpandTools: boolean;
 	translateTargetLanguage: string;
 	showTranslations: boolean;
 }
@@ -67,7 +66,6 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 		},
 		chords: {
 			enabled: true,
-			defaultExpandTools: false,
 			translateTargetLanguage: "en",
 			showTranslations: true,
 		},
@@ -210,14 +208,6 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 						control: {
 							type: "toggle",
 							key: "packages.chords.enabled",
-						},
-					},
-					{
-						name: "Expand chord tools by default",
-						desc: "When enabled, chord diagrams and transpose controls are visible by default. Otherwise they are collapsed behind a toggle.",
-						control: {
-							type: "toggle",
-							key: "packages.chords.defaultExpandTools",
 						},
 					},
 					{

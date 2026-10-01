@@ -44,7 +44,7 @@ Most notation packages follow this layout:
 Additional package-specific files:
 - **abc**: `playback.ts` — `AbcPlaybackController`, MIDI/audio playback via abcjs
 - **strumming**: `parser.ts`, `stroke-token.ts` (data model), `audio.ts` (Web Audio synthesis), `animation.ts` + `animation-logic.ts` (beat animation)
-- **chords**: `chords-parser.ts`, `chord-name.ts`, `guitar-chord.ts`, `piano-chord.ts`, `guitar-diagram.ts`, `piano-diagram.ts`, `transpose.ts`
+- **chords**: `chords-parser.ts`, `chord-name.ts`, `guitar-chord.ts`, `piano-chord.ts`, `guitar-diagram.ts`, `piano-diagram.ts`, `transpose.ts`, `chords-view.ts` (right-sidebar `ItemView` with diagrams + transpose for the active note) and `chords-view-logic.ts` (pure)
 - **midi-capture**: `midi-listener.ts` (Web MIDI API), `capture-session.ts` (stateful recording), `note-to-abc.ts` (conversion engine)
 - **piano-monitor**: `view.ts` — sidebar `ItemView` with live abcjs staff, key reference, and scale browser
 
@@ -67,7 +67,7 @@ Additional package-specific files:
 
 ### Settings
 
-Each package has an enable/disable toggle. Additional per-package settings: ABC (staff width, scale, MIDI instrument), chords (expand tools by default), MIDI capture (BPM). Settings persist via `plugin.loadData()` / `plugin.saveData()`.
+Each package has an enable/disable toggle. Additional per-package settings: ABC (staff width, scale, MIDI instrument), chords (translation target language), MIDI capture (BPM). Settings persist via `plugin.loadData()` / `plugin.saveData()`.
 
 ### Auto-scroll
 

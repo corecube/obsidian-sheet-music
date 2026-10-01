@@ -1,7 +1,7 @@
 export const DEFAULT_AUTOSCROLL_SPEED = 5;
 export const AUTOSCROLL_STEPS = 20;
-const MIN_AUTOSCROLL_SPEED = 1;
-const MAX_AUTOSCROLL_SPEED = AUTOSCROLL_STEPS;
+export const MIN_AUTOSCROLL_SPEED = 1;
+export const MAX_AUTOSCROLL_SPEED = AUTOSCROLL_STEPS;
 
 const HIGHEST_INTERVAL_MS = 200;
 const LOWEST_INTERVAL_MS = 13;
@@ -28,6 +28,18 @@ function clampSpeed(value: number): number {
 	}
 
 	return Math.min(value, MAX_AUTOSCROLL_SPEED);
+}
+
+/**
+ * Applies a temporary, user-driven speed change (e.g. a hotkey or mouse
+ * wheel). Unlike `parseAutoscrollSpeed`, going below the minimum sticks to
+ * the minimum instead of falling back to the default, and the result is
+ * always a whole step.
+ */
+export function adjustAutoscrollSpeed(current: number, delta: number): number {
+	const base = Number.isFinite(current) ? current : DEFAULT_AUTOSCROLL_SPEED;
+	const next = Math.round(base + delta);
+	return Math.min(Math.max(next, MIN_AUTOSCROLL_SPEED), MAX_AUTOSCROLL_SPEED);
 }
 
 export const MAX_COMPENSATION_FACTOR = 6;
