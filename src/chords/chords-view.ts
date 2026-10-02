@@ -1,4 +1,5 @@
 import {
+	FileView,
 	ItemView,
 	MarkdownView,
 	Plugin,
@@ -27,6 +28,14 @@ export class ChordsView extends ItemView {
 	private emptyEl!: HTMLElement;
 	private controlsEl!: HTMLElement;
 	private refreshToken = 0;
+	/**
+	 * True when the diagrams were last drawn while the pane was not shown
+	 * (collapsed sidebar, closed mobile drawer, inactive tab). svguitar
+	 * measures text with getBBox(), which yields 0 in a display:none
+	 * subtree, so such a render has the chord name overlapping the frets
+	 * and must be redone once the pane is visible.
+	 */
+	private renderedHidden = false;
 
 	constructor(
 		leaf: WorkspaceLeaf,
@@ -95,8 +104,13 @@ export class ChordsView extends ItemView {
 			this.app.workspace.on("active-leaf-change", (leaf) => {
 				if (leaf?.view instanceof MarkdownView && leaf.view.file) {
 					this.setFile(leaf.view.file);
+				} else if (leaf === this.leaf) {
+					this.redrawIfShown();
 				}
 			}),
+		);
+		this.registerEvent(
+			this.app.workspace.on("layout-change", () => this.redrawIfShown()),
 		);
 		this.registerEvent(
 			this.app.workspace.on("file-open", (file) => {
@@ -118,8 +132,57 @@ export class ChordsView extends ItemView {
 			}),
 		);
 
-		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
-		this.setFile(active?.file ?? this.app.workspace.getActiveFile());
+		// At startup the layout may still be loading; resolve once it is
+		// ready (runs immediately if it already is).
+		this.app.workspace.onLayoutReady(() => {
+			this.setFile(this.resolveActiveFile());
+		});
+	}
+
+	/**
+	 * The note this pane should follow. When the pane is opened from the
+	 * ribbon or loaded lazily from a sidebar tab, the pane's own leaf is
+	 * the active one, so `getActiveFile()` returns null. Fall back to the
+	 * most recently used leaf of the main area, then to the recent-files
+	 * list.
+	 */
+	private resolveActiveFile(): TFile | null {
+		const ws = this.app.workspace;
+		const active = ws.getActiveViewOfType(MarkdownView);
+		if (active?.file) return active.file;
+
+		const recent = ws.getMostRecentLeaf();
+		if (recent) {
+			const view = recent.view;
+			if (view instanceof FileView && view.file) return view.file;
+			// Deferred leaf: the file is only known via its view state.
+			const state = recent.getViewState();
+			const path = state.state?.["file"];
+			if (state.type === "markdown" && typeof path === "string") {
+				const file = this.app.vault.getAbstractFileByPath(path);
+				if (file instanceof TFile) return file;
+			}
+		}
+
+		const current = ws.getActiveFile();
+		if (current) return current;
+
+		for (const path of ws.getLastOpenFiles()) {
+			const file = this.app.vault.getAbstractFileByPath(path);
+			if (file instanceof TFile) return file;
+		}
+		return null;
+	}
+
+	/** Obsidian calls this when the pane is resized or its tab is shown. */
+	onResize(): void {
+		this.redrawIfShown();
+	}
+
+	private redrawIfShown(): void {
+		if (this.renderedHidden && this.containerEl.isShown()) {
+			void this.refresh();
+		}
 	}
 
 	private setFile(file: TFile | null): void {
@@ -150,11 +213,15 @@ export class ChordsView extends ItemView {
 		this.controlsEl.toggleClass("is-hidden", !hasChords);
 		this.diagramsEl.toggleClass("is-hidden", !hasChords);
 		this.emptyEl.toggleClass("is-hidden", hasChords);
-		if (!hasChords) return;
+		if (!hasChords) {
+			this.renderedHidden = false;
+			return;
+		}
 
 		for (const name of names) {
 			this.renderDiagram(this.diagramsEl, name, customDefs, key);
 		}
+		this.renderedHidden = !this.containerEl.isShown();
 	}
 
 	private frontmatterKey(file: TFile | null): string {
@@ -208,14 +275,25 @@ export class ChordsView extends ItemView {
 
 /** Reveal the chords pane, creating it in the right sidebar if needed. */
 export async function openChordsView(plugin: Plugin): Promise<void> {
-	const existing = plugin.app.workspace.getLeavesOfType(CHORDS_VIEW_TYPE);
-	const first = existing[0];
-	if (first) {
-		await plugin.app.workspace.revealLeaf(first);
-		return;
-	}
-	const leaf = plugin.app.workspace.getRightLeaf(false);
-	if (!leaf) return;
-	await leaf.setViewState({ type: CHORDS_VIEW_TYPE, active: true });
-	await plugin.app.workspace.revealLeaf(leaf);
+	await plugin.app.workspace.ensureSideLeaf(CHORDS_VIEW_TYPE, "right", {
+		reveal: true,
+		active: true,
+	});
+}
+
+/**
+ * Make sure a Chords tab exists in the right sidebar without revealing or
+ * focusing it. Without this the pane only ever appears after the user finds
+ * the ribbon icon or command, which on phones is hidden in the left drawer;
+ * a saved layout from before the pane existed never contains it either.
+ */
+export function ensureChordsView(plugin: Plugin): void {
+	plugin.app.workspace.onLayoutReady(() => {
+		const ws = plugin.app.workspace;
+		if (ws.getLeavesOfType(CHORDS_VIEW_TYPE).length > 0) return;
+		void ws.ensureSideLeaf(CHORDS_VIEW_TYPE, "right", {
+			reveal: false,
+			active: false,
+		});
+	});
 }
