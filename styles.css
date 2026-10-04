@@ -356,6 +356,25 @@ body.sheet-music-hide-translations .chords-notation-line-translation {
 	margin: 0;
 }
 
+/* Chords blocks while editing (source mode / Live Preview): mirror the
+   reading-view classes above. Line rules need to outrank Obsidian's
+   `.cm-s-obsidian .HyperMD-codeblock` colour. */
+.cm-s-obsidian .cm-line.cm-chords-section-line {
+	font-weight: 600;
+}
+.cm-s-obsidian .cm-line.cm-chords-translation,
+.cm-s-obsidian .cm-line.cm-chords-translation .cm-hmd-codeblock {
+	color: var(--text-faint);
+}
+.cm-s-obsidian .cm-chords-chord,
+.cm-s-obsidian .cm-chords-section {
+	color: var(--text-accent);
+	font-weight: 600;
+}
+.cm-s-obsidian .cm-chords-bracket {
+	color: var(--text-faint);
+}
+
 .chords-diagram-numeral {
 	font-size: var(--font-ui-small);
 	font-weight: 600;

@@ -123,6 +123,8 @@ G[320003]
 
 Define custom voicings by appending a fret string directly to the chord name: `Am[x02210]`.
 
+While editing a `chords` block (source mode or Live Preview with the cursor inside it), chord names, section headers and brackets stay colour-coded.
+
 #### Chord chips
 
 Every `chords` block starts with a slim row of chips. Tap **Guitar** to show the guitar diagrams of every chord used in the block right below the row, and **Piano** for the piano diagrams; tap again to hide them. Both can be open at once. Custom voicings are honoured and, if the note's frontmatter has a `key`, each chord also shows its Roman numeral.

@@ -1,5 +1,6 @@
 import { MarkdownPostProcessorContext, Plugin, TFile } from "obsidian";
 import { type ChordInstrument, renderChordChips } from "./chord-chips";
+import { chordsEditorHighlight } from "./editor-highlight";
 import {
 	buildChordChipsModel,
 	transposeBlockInNote,
@@ -119,6 +120,7 @@ export function registerChordsPackage(plugin: Plugin): void {
 	plugin.registerMarkdownCodeBlockProcessor("chords", (source, el, ctx) => {
 		new ChordsBlockRenderer(plugin, el, ctx).render(source);
 	});
+	plugin.registerEditorExtension(chordsEditorHighlight());
 	// Saved layouts may still contain the removed sidebar pane; without its
 	// view type Obsidian would otherwise keep an empty placeholder tab.
 	plugin.app.workspace.onLayoutReady(() => {
