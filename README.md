@@ -123,13 +123,11 @@ G[320003]
 
 Define custom voicings by appending a fret string directly to the chord name: `Am[x02210]`.
 
-#### Chords pane
+#### Chord chips
 
-Chord diagrams and transpose controls live in the **Chords** pane in the right sidebar, so they stay visible while the lyrics scroll. The pane follows the active note and lists every chord used across all of its `chords` blocks, deduplicated, with guitar and piano diagrams. If the note's frontmatter has a `key`, each chord also shows its Roman numeral.
+Every `chords` block starts with a slim row of chips. Tap **Guitar** to show the guitar diagrams of every chord used in the block right below the row, and **Piano** for the piano diagrams; tap again to hide them. Both can be open at once. Custom voicings are honoured and, if the note's frontmatter has a `key`, each chord also shows its Roman numeral.
 
-**−1** / **+1** transpose every chords block in the active note by a semitone and write the result back to the file.
-
-Open the pane with the guitar icon in the left ribbon (or the **Open chords pane** command). Once open, Obsidian keeps it in the right sidebar across restarts.
+The **−** / **+** chips at the start of the row transpose the block by a semitone and write the result back to the note. This works in reading view and on mobile.
 
 #### Lyrics translation
 
@@ -155,7 +153,7 @@ The translation toggle (**Aa**) in the note header toggles translation visibilit
 
 #### Roman numeral analysis
 
-Add a `key` property to the note's frontmatter and each chord diagram will show its Roman numeral below the diagram:
+Add a `key` property to the note's frontmatter and each chord diagram opened from the Guitar or Piano chip will show its Roman numeral:
 
 ```yaml
 ---
