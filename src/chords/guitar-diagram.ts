@@ -9,11 +9,18 @@ function hasNodeProcess(): boolean {
 	return proc?.versions?.node != null;
 }
 
+/**
+ * Draws a fretboard diagram for `chord`. `strings` is the number of strings
+ * of the instrument (6 for guitar, 4 for ukulele).
+ */
 export function renderGuitarDiagram(
 	container: HTMLElement,
 	chord: Chord,
+	strings = 6,
 ): void {
-	const diagramEl = container.createDiv({ cls: "chords-notation-diagram" });
+	const diagramEl = container.createDiv({
+		cls: `chords-notation-diagram chords-notation-diagram-${strings}-strings`,
+	});
 	// svguitar picks its container handling via isNode(): in Electron
 	// (desktop and the mobile emulator) process.versions.node exists, so it
 	// adopts the given element and that element must already be an <svg>.
@@ -29,6 +36,7 @@ export function renderGuitarDiagram(
 	new SVGuitarChord(target)
 		.configure({
 			strokeWidth: 10,
+			strings,
 			frets: 4,
 			titleFontSize: 72,
 			fingerSize: 1,

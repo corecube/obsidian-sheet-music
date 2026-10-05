@@ -121,13 +121,13 @@ G[320003]
 ```
 ````
 
-Define custom voicings by appending a fret string directly to the chord name: `Am[x02210]`.
+Define custom voicings by appending a fret string directly to the chord name: `Am[x02210]`. A six-character fret string defines a guitar voicing, a four-character one (`C[0003]`) a ukulele voicing.
 
 While editing a `chords` block (source mode or Live Preview with the cursor inside it), chord names, section headers and brackets stay colour-coded.
 
 #### Chord chips
 
-Every `chords` block starts with a slim row of chips. Tap **Guitar** to show the guitar diagrams of every chord used in the block right below the row, and **Piano** for the piano diagrams; tap again to hide them. Both can be open at once. Custom voicings are honoured and, if the note's frontmatter has a `key`, each chord also shows its Roman numeral.
+Every `chords` block starts with a slim row of chips. Tap **Guitar**, **Ukulele** or **Piano** to show the diagrams of every chord used in the block for that instrument right below the row; tap again to hide them. Several panels can be open at once. Custom voicings are honoured and, if the note's frontmatter has a `key`, each chord also shows its Roman numeral.
 
 The **−** / **+** chips at the start of the row transpose the block by a semitone and write the result back to the note. This works in reading view and on mobile.
 
@@ -155,7 +155,7 @@ The translation toggle (**Aa**) in the note header toggles translation visibilit
 
 #### Roman numeral analysis
 
-Add a `key` property to the note's frontmatter and each chord diagram opened from the Guitar or Piano chip will show its Roman numeral:
+Add a `key` property to the note's frontmatter and each chord diagram opened from the Guitar, Ukulele or Piano chip will show its Roman numeral:
 
 ```yaml
 ---

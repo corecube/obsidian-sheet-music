@@ -42,6 +42,7 @@ describe("collectTranslatableLines", () => {
 	it("skips blank, section, custom-def and translation lines", () => {
 		const source = [
 			"Am[x02210]",
+			"C[0003]",
 			"[Verse 1]",
 			"",
 			"[C] La luz de tu [G]mirar",
@@ -49,8 +50,8 @@ describe("collectTranslatableLines", () => {
 			"[Am] No existe nadie como [C]tú",
 		].join("\n");
 		expect(collectTranslatableLines(source)).toEqual([
-			{ index: 3, text: " La luz de tu mirar" },
-			{ index: 5, text: " No existe nadie como tú" },
+			{ index: 4, text: " La luz de tu mirar" },
+			{ index: 6, text: " No existe nadie como tú" },
 		]);
 	});
 

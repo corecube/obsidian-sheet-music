@@ -9,6 +9,7 @@ import { transposeSource } from "./transpose";
 
 const BLOCK = [
 	"Am[x02210]",
+	"C[0003]",
 	"[Verse 1]",
 	"[C] la [G] la [Am] la",
 	"> translation [D] here",
@@ -48,10 +49,14 @@ describe("collectBlockChords", () => {
 		expect(names).not.toContain("Chorus");
 		expect(names).not.toContain("D");
 		expect(names).not.toContain("x02210");
+		expect(names).not.toContain("0003");
 	});
 
-	it("keeps custom voicings keyed by chord name", () => {
-		expect([...collectBlockChords(BLOCK).customDefs.keys()]).toEqual(["Am"]);
+	it("keeps custom voicings keyed by chord name, split by instrument", () => {
+		const { customDefs } = collectBlockChords(BLOCK);
+		expect([...customDefs.guitar.keys()]).toEqual(["Am"]);
+		expect([...customDefs.ukulele.keys()]).toEqual(["C"]);
+		expect(customDefs.ukulele.get("C")?.fingers).toHaveLength(4);
 	});
 
 	it("returns nothing for a block without chords", () => {

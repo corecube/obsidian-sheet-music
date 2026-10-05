@@ -1,11 +1,17 @@
 import { setIcon } from "obsidian";
 import type { ChordChipsModel } from "./chord-chips-logic";
-import { lookupChord } from "./guitar-chord";
+import {
+	type FrettedInstrument,
+	lookupFrettedChord,
+	STRING_COUNT,
+} from "./guitar-chord";
 import { renderGuitarDiagram } from "./guitar-diagram";
 import { lookupPianoChord } from "./piano-chord";
 import { renderPianoDiagram } from "./piano-diagram";
 
-export type ChordInstrument = "guitar" | "piano";
+export type ChordInstrument = FrettedInstrument | "piano";
+
+const INSTRUMENTS: readonly ChordInstrument[] = ["guitar", "ukulele", "piano"];
 
 export interface ChordChipsOptions {
 	/** Instruments whose diagram panel should be open right away. */
@@ -17,10 +23,10 @@ export interface ChordChipsOptions {
 }
 
 /**
- * A slim row at the top of a chords block: −/+ transpose chips, then one
- * chip per instrument. Tapping "Guitar" or "Piano" shows the diagrams of
- * every chord in the block for that instrument right below the row;
- * tapping again hides them. Both panels can be open at once.
+ * Two slim rows at the top of a chords block: −/+ transpose chips on the
+ * first, one chip per instrument on the second. Tapping "Guitar", "Ukulele" or "Piano" shows the
+ * diagrams of every chord in the block for that instrument right below the
+ * row; tapping again hides them. Several panels can be open at once.
  *
  * Diagrams are drawn only on demand, i.e. while the block is visible, so
  * svguitar's text measurement never runs inside a hidden subtree.
@@ -32,10 +38,15 @@ export function renderChordChips(
 ): void {
 	if (model.names.length === 0) return;
 
-	const row = container.createDiv({ cls: "chords-chips" });
+	const transposeRow = container.createDiv({
+		cls: "chords-chips chords-chips-transpose",
+	});
+	const row = container.createDiv({
+		cls: "chords-chips chords-chips-instruments",
+	});
 
 	const addTransposeChip = (semitones: number, icon: string, label: string) => {
-		const chip = row.createEl("button", {
+		const chip = transposeRow.createEl("button", {
 			cls: "chords-chip chords-chip-transpose",
 			attr: { "aria-label": label },
 		});
@@ -44,7 +55,6 @@ export function renderChordChips(
 	};
 	addTransposeChip(-1, "minus", "Transpose down a semitone");
 	addTransposeChip(1, "plus", "Transpose up a semitone");
-	row.createSpan({ cls: "chords-chips-divider" });
 
 	const open = new Set<ChordInstrument>(options.open);
 	const panels = new Map<ChordInstrument, HTMLElement>();
@@ -83,9 +93,11 @@ export function renderChordChips(
 		chips.set(instrument, chip);
 	};
 	addChip("guitar", "guitar", "Guitar");
+	// Lucide has no ukulele icon; the guitar silhouette is the closest match.
+	addChip("ukulele", "guitar", "Ukulele");
 	addChip("piano", "piano", "Piano");
 
-	for (const instrument of ["guitar", "piano"] as const) {
+	for (const instrument of INSTRUMENTS) {
 		panels.set(
 			instrument,
 			container.createDiv({
@@ -105,14 +117,19 @@ function renderPanel(
 		const group = panel.createDiv({ cls: "chords-notation-diagram-group" });
 		const numeral = model.numerals.get(name);
 
-		if (instrument === "guitar") {
+		if (instrument !== "piano") {
 			if (numeral) {
 				group.createSpan({ cls: "chords-diagram-numeral", text: numeral });
 			}
-			const chord = model.customDefs.get(name) ?? lookupChord(name);
+			const chord =
+				model.customDefs[instrument].get(name) ??
+				lookupFrettedChord(name, instrument);
 			// svguitar draws the chord name as the diagram title already.
-			if (chord) renderGuitarDiagram(group, chord);
-			else group.createSpan({ cls: "chords-diagram-name", text: name });
+			if (chord) {
+				renderGuitarDiagram(group, chord, STRING_COUNT[instrument]);
+			} else {
+				group.createSpan({ cls: "chords-diagram-name", text: name });
+			}
 			continue;
 		}
 

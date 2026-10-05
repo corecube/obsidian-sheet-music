@@ -8,7 +8,8 @@ export const TRANSLATION_PREFIX = "> ";
 
 // Mirrors CUSTOM_DEF_PATTERN in guitar-chord.ts; duplicated here so this
 // module stays free of the svguitar/chords-db imports.
-const CUSTOM_DEF_LINE_RE = /^([A-G][#b]?[A-Za-z0-9#/]*)\[([xX0-9]{6})\]\s*$/;
+const CUSTOM_DEF_LINE_RE =
+	/^([A-G][#b]?[A-Za-z0-9#/]*)\[([xX0-9]{4}|[xX0-9]{6})\]\s*$/;
 
 export interface TranslatableLine {
 	index: number;

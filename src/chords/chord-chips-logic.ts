@@ -1,6 +1,6 @@
 import type { Chord } from "svguitar";
 import { Progression } from "tonal";
-import { parseCustomChordDefs } from "./guitar-chord";
+import { type FrettedInstrument, parseCustomChordDefs } from "./guitar-chord";
 import {
 	isSectionLine,
 	splitChordsLines,
@@ -13,8 +13,11 @@ const FRET_STRING_RE = /^[xX0-9]+$/;
 export interface ChordChipsModel {
 	/** Chord names in order of first appearance in the block. */
 	names: string[];
-	/** Custom voicings (`Am[x02210]`) defined in the block. */
-	customDefs: Map<string, Chord>;
+	/**
+	 * Custom voicings defined in the block, per fretted instrument: six-fret
+	 * strings (`Am[x02210]`) are guitar, four-fret strings (`C[0003]`) ukulele.
+	 */
+	customDefs: Record<FrettedInstrument, Map<string, Chord>>;
 	/** Roman numeral per chord name; empty without a note key. */
 	numerals: Map<string, string>;
 }
@@ -46,7 +49,8 @@ export function collectBlockChords(
 	};
 
 	const customDefs = parseCustomChordDefs(source);
-	for (const name of customDefs.keys()) add(name);
+	for (const defs of Object.values(customDefs))
+		for (const name of defs.keys()) add(name);
 
 	for (const line of splitChordsLines(source)) {
 		if (isSectionLine(line) || isTranslationLine(line)) continue;

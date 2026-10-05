@@ -142,7 +142,8 @@
 	overflow-x: auto;
 }
 
-/* Chord chips: slim scrollable row at the top of a chords block. */
+/* Chord chips: slim scrollable rows at the top of a chords block; transpose
+   chips on the first row, instrument chips on the second. */
 .chords-chips {
 	display: flex;
 	align-items: center;
@@ -184,13 +185,6 @@
 	background: transparent;
 	border: 1px solid var(--background-modifier-border);
 	color: var(--text-muted);
-}
-.chords-chips-divider {
-	flex: none;
-	width: 1px;
-	height: 16px;
-	background: var(--background-modifier-border);
-	margin: 0 2px;
 }
 .is-mobile .chords-chip {
 	height: 32px;
@@ -289,6 +283,12 @@
 	aspect-ratio: 4 / 5;
 	overflow: visible;
 	color: var(--text-normal);
+}
+
+/* Four strings leave the fixed-width svguitar canvas with wide spacing, so a
+   narrower box keeps ukulele diagrams about the size of the guitar ones. */
+.chords-notation-diagram-4-strings svg {
+	width: 80px;
 }
 
 .chords-notation-diagram svg line,
