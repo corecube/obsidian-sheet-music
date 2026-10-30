@@ -33,6 +33,16 @@ export default tseslint.config(
 			"obsidianmd/ui/sentence-case": "off",
 		},
 	},
+	{
+		// Node scripts outside the TypeScript project: lint with Node globals and
+		// without type-aware rules, which need a tsconfig entry.
+		files: ["doc/**/*.mjs"],
+		...tseslint.configs.disableTypeChecked,
+		languageOptions: {
+			globals: globals.node,
+			parserOptions: { project: null },
+		},
+	},
 	globalIgnores([
 		"node_modules",
 		"dist",

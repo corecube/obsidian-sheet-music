@@ -356,6 +356,188 @@ body.sheet-music-hide-translations .chords-notation-line-translation {
 	margin: 0;
 }
 
+.progression-key {
+	color: var(--text-muted);
+	font-size: var(--font-smaller);
+}
+
+.progression-key-line {
+	color: var(--text-accent);
+	font-weight: 700;
+	margin-right: 4px;
+	/* Reserve room for the longest key ("Bbm:") so transposing does not shift the chips */
+	min-width: 3em;
+	white-space: nowrap;
+}
+
+.progression-block .progression-table {
+	width: auto;
+	border-collapse: collapse;
+	margin: 0;
+}
+.progression-block .progression-table th,
+.progression-block .progression-table td {
+	border: 1px solid var(--background-modifier-border);
+	padding: 2px 8px;
+	line-height: 1.3;
+	text-align: left;
+	vertical-align: top;
+	background: none;
+}
+.progression-measure {
+	color: var(--text-faint);
+	font-weight: 400;
+	font-size: var(--font-smaller);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.progression-cell {
+	min-width: 3.5em;
+}
+.progression-meter {
+	color: var(--text-muted);
+	font-size: var(--font-smaller);
+	margin-right: 4px;
+}
+
+/* Metered blocks: a beat grid. Every beat column gets the same width so a
+   chord's cell width shows how long it lasts. */
+.progression-block .progression-table.is-metered {
+	table-layout: fixed;
+	width: 100%;
+}
+.progression-table.is-metered .progression-col-measure {
+	width: 3.6em;
+}
+.progression-table.is-metered .progression-measure {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.progression-table.is-metered .progression-cell {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+/* Narrow screens: a chord name may break after the slash (<wbr>) instead of being cut off */
+.is-mobile .progression-table.is-metered .progression-chord {
+	white-space: normal;
+	overflow-wrap: break-word;
+}
+.progression-block .progression-table .progression-cell-empty {
+	border: none;
+}
+/* Harmonic function colours (theme palette, so they follow light/dark mode) */
+.progression-fn-tonic {
+	--progression-fn-rgb: var(--color-blue-rgb);
+}
+.progression-fn-predominant {
+	--progression-fn-rgb: var(--color-green-rgb);
+}
+.progression-fn-dominant {
+	--progression-fn-rgb: var(--color-red-rgb);
+}
+.progression-fn-applied {
+	--progression-fn-rgb: var(--color-purple-rgb);
+}
+.progression-fn-chromatic {
+	--progression-fn-rgb: var(--color-orange-rgb);
+}
+.progression-block .progression-table td[class*="progression-fn-"] {
+	background: rgba(var(--progression-fn-rgb), 0.12);
+	border-bottom: 2px solid rgba(var(--progression-fn-rgb), 0.7);
+}
+td[class*="progression-fn-"] .progression-numeral {
+	color: rgb(var(--progression-fn-rgb));
+}
+
+.progression-pivot {
+	color: var(--text-faint);
+	font-style: normal;
+}
+
+.progression-numeral {
+	color: var(--text-muted);
+	font-style: italic;
+	font-size: var(--font-smaller);
+	white-space: nowrap;
+}
+.progression-chord {
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.progression-controls {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 4px;
+	line-height: 1;
+}
+
+.progression-controls .abc-notation-controls {
+	margin-bottom: 0;
+}
+
+.progression-chip {
+	flex: none;
+	height: 22px;
+	padding: 0 8px;
+	border: none;
+	border-radius: 999px;
+	box-shadow: none;
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	line-height: 22px;
+	cursor: pointer;
+}
+.progression-chip:hover {
+	background: var(--background-modifier-border-hover);
+}
+.progression-chip.is-active {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+.progression-chip-transpose {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	padding: 0;
+	background: transparent;
+	border: 1px solid var(--background-modifier-border);
+	color: var(--text-muted);
+}
+.progression-chip-icon svg {
+	width: 14px;
+	height: 14px;
+}
+.is-mobile .progression-chip {
+	height: 30px;
+	line-height: 30px;
+}
+.is-mobile .progression-chip-transpose {
+	width: 30px;
+}
+
+.progression-score {
+	overflow-x: auto;
+	color: var(--text-normal);
+}
+.progression-score:empty {
+	display: none;
+}
+.progression-score:not(:empty) {
+	margin-top: 8px;
+}
+.progression-score svg {
+	width: 100%;
+	height: auto;
+	color: var(--text-normal);
+}
+
 /* Chords blocks while editing (source mode / Live Preview): mirror the
    reading-view classes above. Line rules need to outrank Obsidian's
    `.cm-s-obsidian .HyperMD-codeblock` colour. */
@@ -523,4 +705,37 @@ body.sheet-music-hide-translations .chords-notation-line-translation {
 .sheet-music-autoscroll-speed-badge.is-hidden,
 .sheet-music-autoscroll-speed-btn.is-hidden {
 	display: none;
+}
+
+/* Progression blocks while editing (source mode / Live Preview): the same
+   function colours as the rendered table. */
+.cm-s-obsidian .cm-progression-fn-tonic {
+	color: rgb(var(--color-blue-rgb));
+	font-weight: 600;
+}
+.cm-s-obsidian .cm-progression-fn-predominant {
+	color: rgb(var(--color-green-rgb));
+	font-weight: 600;
+}
+.cm-s-obsidian .cm-progression-fn-dominant {
+	color: rgb(var(--color-red-rgb));
+	font-weight: 600;
+}
+.cm-s-obsidian .cm-progression-fn-applied {
+	color: rgb(var(--color-purple-rgb));
+	font-weight: 600;
+}
+.cm-s-obsidian .cm-progression-fn-chromatic {
+	color: rgb(var(--color-orange-rgb));
+	font-weight: 600;
+}
+.cm-s-obsidian .cm-progression-key,
+.cm-s-obsidian .cm-progression-chord {
+	color: var(--text-accent);
+	font-weight: 600;
+}
+.cm-s-obsidian .cm-progression-marker,
+.cm-s-obsidian .cm-progression-meta,
+.cm-s-obsidian .cm-progression-comment {
+	color: var(--text-faint);
 }

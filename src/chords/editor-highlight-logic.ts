@@ -23,17 +23,18 @@ export interface LineHighlight {
 }
 
 /**
- * 0-based inclusive line ranges of the bodies of every ```chords block.
- * Unlike the renderer, a fence that is still unclosed (the user is typing
- * it) runs to the end of the document so highlighting appears right away.
+ * 0-based inclusive line ranges of the bodies of every fenced block whose
+ * language tag is `lang`. Unlike the renderer, a fence that is still
+ * unclosed (the user is typing it) runs to the end of the document so
+ * highlighting appears right away.
  */
-export function chordsBodyRanges(lines: string[]): Array<[number, number]> {
+export function fencedBodyRanges(lines: string[], lang: string): Array<[number, number]> {
 	const ranges: Array<[number, number]> = [];
 	for (let i = 0; i < lines.length; i++) {
 		const open = FENCE_OPEN_RE.exec(lines[i] ?? "");
 		if (!open) continue;
 		const fence = open[1] ?? "";
-		const isChords = (open[2] ?? "") === "chords";
+		const matches = (open[2] ?? "") === lang;
 		const closeRe = new RegExp(`^\`{${fence.length},}\\s*$`);
 		let end = lines.length;
 		for (let j = i + 1; j < lines.length; j++) {
@@ -42,10 +43,15 @@ export function chordsBodyRanges(lines: string[]): Array<[number, number]> {
 				break;
 			}
 		}
-		if (isChords && end > i + 1) ranges.push([i + 1, end - 1]);
+		if (matches && end > i + 1) ranges.push([i + 1, end - 1]);
 		i = end;
 	}
 	return ranges;
+}
+
+/** 0-based inclusive line ranges of the bodies of every ```chords block. */
+export function chordsBodyRanges(lines: string[]): Array<[number, number]> {
+	return fencedBodyRanges(lines, "chords");
 }
 
 /** Highlight spans for one chords body line. */

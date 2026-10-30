@@ -19,3 +19,5 @@ data.json
 .DS_Store
 
 coverage
+# README screenshots are generated locally by doc/screenshots.mjs
+doc/img/

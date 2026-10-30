@@ -7,6 +7,8 @@ import {
 
 export interface ProgressionPackageSettings {
 	enabled: boolean;
+	/** Render each progression as block chords on a grand staff with playback. */
+	showScore: boolean;
 }
 
 export interface StrummingPackageSettings {
@@ -54,6 +56,7 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 	packages: {
 		progression: {
 			enabled: true,
+			showScore: false,
 		},
 		strumming: {
 			enabled: true,
@@ -112,6 +115,14 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 						control: {
 							type: "toggle",
 							key: "packages.progression.enabled",
+						},
+					},
+					{
+						name: "Show progression score",
+						desc: "Start each progression block with its grand-staff score visible. The Score chip toggles it per block; the score uses the ABC staff width, scale and instrument.",
+						control: {
+							type: "toggle",
+							key: "packages.progression.showScore",
 						},
 					},
 					{

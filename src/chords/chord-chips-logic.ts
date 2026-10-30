@@ -1,5 +1,5 @@
 import type { Chord } from "svguitar";
-import { Progression } from "tonal";
+import { chordToRoman, displayNumeral, parseKey } from "../progression/roman";
 import { type FrettedInstrument, parseCustomChordDefs } from "./guitar-chord";
 import {
 	isSectionLine,
@@ -24,16 +24,15 @@ export interface ChordChipsModel {
 
 /**
  * Roman numeral of `chordName` relative to `key` (frontmatter value such as
- * `C`, `F#` or `Am`), or null when there is no key or the numeral would just
- * repeat the chord name.
+ * `C`, `F#` or `Am`), in the same RomanText form the progression block uses
+ * (`vi`, `V7`, `vii°`), or null when there is no key or no reading.
  */
 export function romanNumeralFor(key: string, chordName: string): string | null {
-	const trimmed = key.trim();
-	if (!trimmed) return null;
-	const tonicRoot = trimmed.endsWith("m") ? trimmed.slice(0, -1) : trimmed;
-	const numeral = Progression.toRomanNumerals(tonicRoot, [chordName])[0];
+	const context = parseKey(key.trim());
+	if (!context) return null;
+	const numeral = chordToRoman(chordName, context);
 	if (!numeral || numeral === chordName) return null;
-	return numeral;
+	return displayNumeral(numeral);
 }
 
 /** Chord names used in one chords block, deduplicated, plus custom voicings. */

@@ -20,16 +20,15 @@ function renderCustomOptionsError(el: HTMLElement, errorMessage: string): void {
 	});
 }
 
-function renderAbcControls(el: HTMLElement): {
+export interface PlaybackControls {
 	controlsRow: HTMLElement;
 	playButton: HTMLButtonElement;
 	tempoInput: HTMLInputElement;
 	tempoValue: HTMLElement;
-	transposeDownButton: HTMLButtonElement;
-	transposeUpButton: HTMLButtonElement;
-	transposeResetButton: HTMLButtonElement;
-	transposeValue: HTMLElement;
-} {
+}
+
+/** Play button plus tempo slider, shared by the abc and progression blocks. */
+export function renderPlaybackControls(el: HTMLElement): PlaybackControls {
 	const controlsRow = el.createDiv({ cls: "abc-notation-controls" });
 	const playButton = controlsRow.createEl("button", {
 		cls: "abc-notation-play-button",
@@ -52,6 +51,17 @@ function renderAbcControls(el: HTMLElement): {
 		cls: "abc-notation-tempo-value",
 		text: "100%",
 	});
+
+	return { controlsRow, playButton, tempoInput, tempoValue };
+}
+
+function renderAbcControls(el: HTMLElement): PlaybackControls & {
+	transposeDownButton: HTMLButtonElement;
+	transposeUpButton: HTMLButtonElement;
+	transposeResetButton: HTMLButtonElement;
+	transposeValue: HTMLElement;
+} {
+	const { controlsRow, playButton, tempoInput, tempoValue } = renderPlaybackControls(el);
 
 	const transposeWrap = controlsRow.createDiv({
 		cls: "abc-notation-transpose",

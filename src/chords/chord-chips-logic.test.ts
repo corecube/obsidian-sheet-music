@@ -24,12 +24,12 @@ describe("romanNumeralFor", () => {
 	});
 
 	it("analyses chords in a major key", () => {
-		expect(romanNumeralFor("C", "Am")).toBe("VIm");
+		expect(romanNumeralFor("C", "Am")).toBe("vi");
 		expect(romanNumeralFor("C", "G")).toBe("V");
 	});
 
 	it("uses the tonic of a minor key", () => {
-		expect(romanNumeralFor("Am", "Am")).toBe("Im");
+		expect(romanNumeralFor("Am", "Am")).toBe("i");
 		expect(romanNumeralFor("Am", "E")).toBe("V");
 	});
 
@@ -69,7 +69,7 @@ describe("buildChordChipsModel", () => {
 		const model = buildChordChipsModel(BLOCK, "C");
 		expect(model.numerals.get("C")).toBe("I");
 		expect(model.numerals.get("G")).toBe("V");
-		expect(model.numerals.get("Am")).toBe("VIm");
+		expect(model.numerals.get("Am")).toBe("vi");
 		expect(model.numerals.get("F")).toBe("IV");
 	});
 
