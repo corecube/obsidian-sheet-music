@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-sheet-music",
-	"version": "2.6.0",
+	"version": "2.6.1",
 	"description": "An Obsidian plugin for ABC notation, strumming patterns, and chord sheets.",
 	"main": "main.js",
 	"type": "module",

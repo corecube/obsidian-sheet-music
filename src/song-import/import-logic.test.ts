@@ -111,7 +111,7 @@ describe("buildNote", () => {
 			},
 			lines: ["[Verse]", "[C]la"],
 		});
-		expect(note.fileName).toBe("the-beatles-let-it-be.md");
+		expect(note.fileName).toBe("the_beatles-let_it_be.md");
 		expect(note.content).toBe(
 			[
 				"---",
@@ -162,7 +162,7 @@ describe("buildNote", () => {
 			},
 			lines: ["la"],
 		});
-		expect(note.fileName).toBe("cafe-tacvba-eres-live-2.md");
+		expect(note.fileName).toBe("cafe_tacvba-eres_live_2.md");
 		expect(note.content).toContain('title: "Eres: Live #2"');
 		expect(note.content).toContain("artist: Café Tacvba");
 		expect(note.content).toContain("key: F#m");
@@ -185,14 +185,15 @@ describe("buildNote", () => {
 			song: { title: "", artist: "", sheet: "" },
 			lines: ["la"],
 		});
-		expect(note.fileName).toBe("imported-song.md");
+		expect(note.fileName).toBe("imported_song.md");
 		expect(note.content).toBe(
 			"---\ntags:\ntype: tab\nautoscroll-speed: 5\ntitle:\nartist:\nultimateguitar:\nguitartuna:\nspotify:\nyoutube:\nstatus: todo\nkey:\ncapo:\ntempo:\n---\n\n```chords\nla\n```\n",
 		);
 	});
 
 	it("slugify handles edge cases", () => {
-		expect(slugify("  The  Beatles! ")).toBe("the-beatles");
+		expect(slugify("  The  Beatles! ")).toBe("the_beatles");
+		expect(slugify("Álvaro Soler")).toBe("alvaro_soler");
 		expect(slugify("---")).toBe("");
 	});
 });

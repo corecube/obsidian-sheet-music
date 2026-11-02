@@ -62,7 +62,7 @@ Additional package-specific files:
 ### Non-block packages
 
 - **midi-capture** — registers a ribbon button. On start: creates `CaptureSession` + `MidiListener` (Web MIDI API). On stop: inserts a `midi` block with the captured events at the editor cursor.
-- **song-import** — registers the "Import song from link or text" command. The modal accepts a link of a registered source (fetched with `requestUrl`) or pasted chords-over-lyrics text, converts it with `chord-sheet.ts` and creates `<artist>-<song>.md` next to the active note.
+- **song-import** — registers the "Import song from link or text" command. The modal accepts a link of a registered source (fetched with `requestUrl`) or pasted chords-over-lyrics text, converts it with `chord-sheet.ts` and creates `<artist_name>-<song_name>.md` next to the active note.
 - **piano-monitor** — registers a sidebar `ItemView`. Uses `MidiListener` to track held notes in real time; renders them onto treble/bass staves via abcjs. Also provides a key-reference panel (Roman numerals + chord detection via `tonal`) and a scale browser.
 
 ### Key design invariant

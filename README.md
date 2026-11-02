@@ -188,7 +188,7 @@ Am                    C
  No existe nadie como tú
 ```
 
-become a new note named `artist-song.md` next to the active note:
+become a new note named `artist_name-song_name.md` next to the active note:
 
 ````md
 ---

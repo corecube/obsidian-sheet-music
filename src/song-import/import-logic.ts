@@ -82,13 +82,14 @@ export function voicingLines(
 		.map((name) => `${name}[${voicings[name] ?? ""}]`);
 }
 
+/** `Álvaro Soler` → `alvaro_soler`; words joined by underscores. */
 export function slugify(text: string): string {
 	return text
 		.normalize("NFKD")
 		.replace(/[̀-ͯ]/g, "")
 		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "");
+		.replace(/[^a-z0-9]+/g, "_")
+		.replace(/^_+|_+$/g, "");
 }
 
 /** Plain scalar when YAML reads it back as the same string, quoted otherwise. */
@@ -156,7 +157,7 @@ export function buildNote(args: {
 	const { song, lines } = args;
 	const slug =
 		[slugify(song.artist), slugify(song.title)].filter(Boolean).join("-") ||
-		"imported-song";
+		"imported_song";
 
 	const head = noteFrontmatter(song) + "\n";
 
