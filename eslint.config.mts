@@ -34,6 +34,16 @@ export default tseslint.config(
 		},
 	},
 	{
+		// Site names are brands; keep the rule on but teach it the casing.
+		files: ["src/song-import/**/*.ts"],
+		rules: {
+			"obsidianmd/ui/sentence-case": [
+				"error",
+				{ brands: ["Ultimate Guitar", "GuitarTuna"] },
+			],
+		},
+	},
+	{
 		// Node scripts outside the TypeScript project: lint with Node globals and
 		// without type-aware rules, which need a tsconfig entry.
 		files: ["doc/**/*.mjs"],

@@ -6,6 +6,7 @@ import { registerMidiCapturePackage } from "./midi-capture";
 import { registerPianoMonitorPackage } from "./piano-monitor";
 import { registerProgressionPackage } from "./progression";
 import { registerStrummingPackage } from "./strumming";
+import { registerSongImportPackage } from "./song-import";
 import {
 	DEFAULT_SETTINGS,
 	SheetMusicSettingTab,
@@ -33,6 +34,10 @@ export default class SheetMusicPlugin extends Plugin {
 
 		if (this.settings.packages.chords.enabled) {
 			registerChordsPackage(this);
+		}
+
+		if (this.settings.packages.songImport.enabled) {
+			registerSongImportPackage(this);
 		}
 
 		if (this.settings.packages.midiCapture.enabled) {
@@ -75,6 +80,10 @@ export default class SheetMusicPlugin extends Plugin {
 				pianoMonitor: {
 					...DEFAULT_SETTINGS.packages.pianoMonitor,
 					...stored?.packages?.pianoMonitor,
+				},
+				songImport: {
+					...DEFAULT_SETTINGS.packages.songImport,
+					...stored?.packages?.songImport,
 				},
 			},
 		};

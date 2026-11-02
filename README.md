@@ -16,6 +16,8 @@ Render playable music notation inside your Obsidian notes. Supports ABC notation
 
 **MIDI capture** — connect a keyboard and record live playing directly into a `midi` block.
 
+**Song import** — turn a chord page link (Ultimate Guitar, GuitarTuna) or chords-over-lyrics text pasted from any site into a ready-made `chords` note.
+
 ---
 
 ## Usage
@@ -164,6 +166,70 @@ key: C
 ```
 
 With `key: C`, the diagram for `Am` is labelled `vi`, `G7` becomes `V7`, `Bdim` becomes `vii°`, and so on, in the same RomanText form the progression block uses. Works with minor keys too (`key: Am`). If the chord cannot be resolved in the given key the label is omitted.
+
+---
+
+### Song import
+
+Run **Import song from link or text**, paste a link to a chord page on a supported site or chords-over-lyrics text copied from anywhere, and press **Import** (or Cmd/Ctrl+Enter). Pasted text is converted without a network request.
+
+| Site | Links | What is imported |
+| --- | --- | --- |
+| Ultimate Guitar | `tabs.ultimate-guitar.com` chords pages | chords and lyrics, key, capo, strumming patterns, chord voicings |
+| GuitarTuna | `guitartuna.com/chords/…` | chords and lyrics, key, capo, tempo, tuning, chord voicings |
+
+Chords above the lyrics become inline brackets, section headers keep a blank line around them, extra spacing is collapsed and tab lines stay as plain text. Link imports also add the site's chord voicings (`Am[x02210]`) at the top of the block and its strumming patterns as `strumming` blocks above the lyrics. Chords-over-lyrics like this:
+
+```
+[Verse 1]
+C                  G
+ La luz de tu mirar, tu hermoso caminar
+Am                    C
+ No existe nadie como tú
+```
+
+become a new note named `artist-song.md` next to the active note:
+
+````md
+---
+tags:
+type: tab
+autoscroll-speed: 5
+title: Tu mirar
+artist: Los Ejemplos
+ultimateguitar: https://tabs.ultimate-guitar.com/tab/los-ejemplos/tu-mirar-chords-1
+guitartuna:
+spotify:
+youtube:
+status: todo
+key: C
+capo: 2
+tempo: 96
+---
+
+```strumming
+{
+    "part": "Verse",
+    "bpm": 96,
+    "denominator": 8,
+    "isTriplet": false,
+    "measures": [1, 101, 1, 101, 1, 101, 1, 101]
+}
+```
+
+```chords
+C[x32010]
+G[320003]
+Am[x02210]
+
+[Verse 1]
+
+[C]La luz de tu mirar[G], tu hermoso caminar
+[Am]No existe nadie como [C]tú
+```
+````
+
+The frontmatter follows a fixed song-note template: `title`, `artist`, `key` and the page link come from the page, `capo` from the page, the page link in the site's field (`ultimateguitar` or `guitartuna`), `tempo` from the page or the first strumming pattern, and `type`, `autoscroll-speed` and `status` get defaults; `tags`, `spotify` and `youtube` are left empty to fill in. The `key` makes chord diagrams show Roman numerals right away. Only chords pages (including ukulele chords) are converted; pure tab pages are refused with a notice. A chord marker that repeats the chord already in effect is dropped (`[C]la la [C]la` becomes `[C]la la la`; section headers start over); turn this off in settings to keep every marker. If a note with that name already exists, a numeric suffix is added.
 
 ---
 
@@ -373,6 +439,19 @@ Open **Settings → Sheet Music** to configure each package independently.
 | Chords       | Enable                        | on        |
 | Chords       | Translation target language   | `en`      |
 | MIDI Capture | Enable                        | on        |
+| Song import  | Enable                        | on        |
+| Song import  | Drop repeated chords          | on        |
+
+---
+
+## Disclosures
+
+This plugin makes network requests only when you trigger one of these two features, and never otherwise. It collects no telemetry, shows no ads, and sends nothing from your vault anywhere except as described here.
+
+- **Lyrics translation** (ribbon button or command) sends the lyric lines of your `chords` blocks to Google Translate (`translate.googleapis.com`) and writes the translations back into the note.
+- **Song import** (command) makes one HTTPS request to the link you paste (supported sites: Ultimate Guitar, GuitarTuna), on your behalf and only when you press **Import**, then creates a note from the page. Nothing is fetched automatically, in bulk, or in the background. Pasting the tab text instead of a link needs no network access at all.
+
+The imported chord sheets and lyrics are stored only in your own vault for personal use. Respect the terms of service and the rights of the content owners of any site you import from.
 
 ---
 

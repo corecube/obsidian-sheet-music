@@ -739,3 +739,17 @@ td[class*="progression-fn-"] .progression-numeral {
 .cm-s-obsidian .cm-progression-comment {
 	color: var(--text-faint);
 }
+
+/* Song import dialog */
+.song-import-input {
+	width: 100%;
+	min-height: 14em;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-small);
+	resize: vertical;
+}
+.song-import-status {
+	min-height: 1.5em;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}

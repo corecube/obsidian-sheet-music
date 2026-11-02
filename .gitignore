@@ -21,3 +21,7 @@ data.json
 coverage
 # README screenshots are generated locally by doc/screenshots.mjs
 doc/img/
+
+# saved site pages used to develop song-import sources
+/samples/
+/*.html

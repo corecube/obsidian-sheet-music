@@ -1,26 +1,8 @@
 import { requestUrl } from "obsidian";
+import { withTimeout } from "../utils/with-timeout";
 import { chunkTexts, parseGtxResponse } from "./translate-logic";
 
 const REQUEST_TIMEOUT_MS = 20000;
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-	return new Promise<T>((resolve, reject) => {
-		const timer = window.setTimeout(
-			() => reject(new Error("Translation request timed out")),
-			ms,
-		);
-		promise.then(
-			(value) => {
-				window.clearTimeout(timer);
-				resolve(value);
-			},
-			(error: unknown) => {
-				window.clearTimeout(timer);
-				reject(error instanceof Error ? error : new Error(String(error)));
-			},
-		);
-	});
-}
 
 function buildUrl(text: string, targetLang: string): string {
 	return (
@@ -38,6 +20,7 @@ async function translateText(
 	const res = await withTimeout(
 		requestUrl({ url: buildUrl(text, targetLang) }),
 		REQUEST_TIMEOUT_MS,
+		"Translation request timed out",
 	);
 	return parseGtxResponse(res.json);
 }

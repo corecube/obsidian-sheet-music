@@ -36,6 +36,12 @@ export interface MidiCapturePackageSettings {
 	enabled: boolean;
 }
 
+export interface SongImportPackageSettings {
+	enabled: boolean;
+	/** Drop chord markers that repeat the chord already in effect. */
+	dropRepeatedChords: boolean;
+}
+
 export interface SheetMusicSettings {
 	packages: {
 		progression: ProgressionPackageSettings;
@@ -44,6 +50,7 @@ export interface SheetMusicSettings {
 		chords: ChordsPackageSettings;
 		midiCapture: MidiCapturePackageSettings;
 		pianoMonitor: PianoMonitorPackageSettings;
+		songImport: SongImportPackageSettings;
 	};
 }
 
@@ -77,6 +84,10 @@ export const DEFAULT_SETTINGS: SheetMusicSettings = {
 		},
 		pianoMonitor: {
 			enabled: true,
+		},
+		songImport: {
+			enabled: true,
+			dropRepeatedChords: true,
 		},
 	},
 };
@@ -231,6 +242,28 @@ export class SheetMusicSettingTab extends PluginSettingTab {
 								DEFAULT_SETTINGS.packages.chords
 									.translateTargetLanguage,
 							placeholder: "en",
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Song import",
+				items: [
+					{
+						name: "Enable song import",
+						desc: "Registers the 'Import song from link or text' command, which creates a chord sheet note from a supported link (Ultimate Guitar, GuitarTuna) or pasted chords-over-lyrics text.",
+						control: {
+							type: "toggle",
+							key: "packages.songImport.enabled",
+						},
+					},
+					{
+						name: "Drop repeated chords",
+						desc: "Remove a chord marker when it repeats the chord already in effect; section headers start over.",
+						control: {
+							type: "toggle",
+							key: "packages.songImport.dropRepeatedChords",
 						},
 					},
 				],

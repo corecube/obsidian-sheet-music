@@ -9,12 +9,12 @@ npm run dev          # Watch mode build (incremental)
 npm run build        # Type-check + production build + copy artifacts to vault
 npm run lint         # ESLint across all .ts files
 npm test             # Jest test suite
-npm test -- --testPathPattern=src/abc   # Run tests for a single package
+npx jest src/abc     # Run tests for a single package
 ```
 
 ## Architecture
 
-This Obsidian plugin renders multiple music notation formats inside notes. It is organized into six **packages** plus one cross-cutting feature:
+This Obsidian plugin renders multiple music notation formats inside notes. It is organized into seven **packages** plus one cross-cutting feature:
 
 ```
 src/
@@ -24,7 +24,8 @@ src/
   strumming/       # Strumming patterns with audio synthesis and playback animation
   chords/          # Chord sheets (lyrics + chord markers)
   progression/     # Chord progressions with Roman numeral analysis
-  midi-capture/    # Live MIDI recording → ABC block insertion
+  midi-capture/    # Live MIDI recording → `midi` block insertion + playback
+  song-import/     # Command + modal: chord page link (per-site sources) or pasted text → new chords note
   piano-monitor/   # Sidebar view: live note display + key/scale reference
   autoscroll/      # Cross-cutting: auto-scroll driven by note frontmatter
   utils/           # Shared utilities
@@ -44,9 +45,10 @@ Most notation packages follow this layout:
 Additional package-specific files:
 - **abc**: `playback.ts` — `AbcPlaybackController`, MIDI/audio playback via abcjs
 - **strumming**: `parser.ts`, `stroke-token.ts` (data model), `audio.ts` (Web Audio synthesis), `animation.ts` + `animation-logic.ts` (beat animation)
-- **chords**: `chords-parser.ts`, `chord-name.ts`, `guitar-chord.ts`, `piano-chord.ts`, `guitar-diagram.ts`, `piano-diagram.ts`, `transpose.ts`, `chord-chips.ts` (transpose + Guitar/Piano chips with on-demand diagram panels at the top of each block) `chord-chips-logic.ts` (pure: chord collection, Roman numerals, per-block transpose), `editor-highlight.ts` (CodeMirror decorations while editing a block) and `editor-highlight-logic.ts` (pure)
+- **chords**: `chord-name.ts`, `guitar-chord.ts`, `piano-chord.ts`, `guitar-diagram.ts`, `piano-diagram.ts`, `transpose.ts`, `chord-chips.ts` (transpose + Guitar/Piano chips with on-demand diagram panels at the top of each block) `chord-chips-logic.ts` (pure: chord collection, Roman numerals, per-block transpose), `editor-highlight.ts` (CodeMirror decorations while editing a block) and `editor-highlight-logic.ts` (pure)
 - **progression**: `lines.ts` (pure: shared RomanText line/token rules — comments, metadata, repeats, meter, key line — used by parser, transposer, highlighter), `roman.ts` (pure: RomanText chord grammar — numeral ↔ chord resolution in a key, minor 6/7 rule, applied chords, abbreviations), `score-abc.ts` (pure: progression → ABC grand staff with numerals as lyrics, real durations from RomanText beats and `Time Signature:`; rendered and played via the abc package's `renderPlaybackControls` + `AbcPlaybackController`), `transpose-logic.ts` (pure: key/chord-name transposition of block source), `editor-highlight.ts` + `editor-highlight-logic.ts` (decorations by harmonic function; the CodeMirror glue is `src/utils/fenced-highlight.ts`, shared with chords)
-- **midi-capture**: `midi-listener.ts` (Web MIDI API), `capture-session.ts` (stateful recording), `note-to-abc.ts` (conversion engine)
+- **midi-capture**: `midi-listener.ts` (Web MIDI API), `capture-session.ts` (stateful recording), `player-renderer.ts` (`midi` block playback)
+- **song-import**: `song.ts` (types: `ImportedSong`, `SongSource`), `sources.ts` (registry; `sources/ultimate-guitar.ts` reads the js-store JSON: tab text, strummings, `applicature` voicings; `sources/guitartuna.ts` reads the rendered `line`/`part_type` markup, the schema.org block and the React payload), `chord-sheet.ts` (pure: chords-over-lyrics → inline bracket merge, section layout, repeated-chord removal), `extract-utils.ts` (entity decoding, JSON walking), `voicings.ts` (fret strings validated with tonal), `import-logic.ts` (pure: pasted text, sheet → block lines, frontmatter template, note building), `import-modal.ts` (Obsidian `Modal`, `requestUrl` fetch, note creation). A new site = one file implementing `SongSource` plus a registry entry.
 - **piano-monitor**: `view.ts` — sidebar `ItemView` with live abcjs staff, key reference, and scale browser
 
 ### Rendering pipeline (code block packages)
@@ -59,16 +61,17 @@ Additional package-specific files:
 
 ### Non-block packages
 
-- **midi-capture** — registers a ribbon button. On start: creates `CaptureSession` + `MidiListener` (Web MIDI API). On stop: calls `note-to-abc.ts` to convert captured notes and inserts an `abc` block at the editor cursor.
+- **midi-capture** — registers a ribbon button. On start: creates `CaptureSession` + `MidiListener` (Web MIDI API). On stop: inserts a `midi` block with the captured events at the editor cursor.
+- **song-import** — registers the "Import song from link or text" command. The modal accepts a link of a registered source (fetched with `requestUrl`) or pasted chords-over-lyrics text, converts it with `chord-sheet.ts` and creates `<artist>-<song>.md` next to the active note.
 - **piano-monitor** — registers a sidebar `ItemView`. Uses `MidiListener` to track held notes in real time; renders them onto treble/bass staves via abcjs. Also provides a key-reference panel (Roman numerals + chord detection via `tonal`) and a scale browser.
 
 ### Key design invariant
 
-`renderer-logic.ts` and pure utility files (e.g. `note-to-abc.ts`) must not import DOM or Obsidian APIs — this keeps them unit-testable with Jest. All Obsidian/DOM interaction lives exclusively in `renderer.ts` or view files.
+`renderer-logic.ts` and pure utility files (e.g. `song-import/chord-sheet.ts`) must not import DOM or Obsidian APIs — this keeps them unit-testable with Jest. All Obsidian/DOM interaction lives exclusively in `renderer.ts` or view files.
 
 ### Settings
 
-Each package has an enable/disable toggle. Additional per-package settings: ABC (staff width, scale, MIDI instrument), chords (translation target language), MIDI capture (BPM). Settings persist via `plugin.loadData()` / `plugin.saveData()`.
+Each package has an enable/disable toggle. Additional per-package settings: ABC (staff width, scale, MIDI instrument), chords (translation target language), progression (show score). Settings persist via `plugin.loadData()` / `plugin.saveData()`.
 
 ### Auto-scroll
 
