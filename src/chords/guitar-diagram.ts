@@ -1,4 +1,5 @@
 import { Chord, SVGuitarChord } from "svguitar";
+import { DIAGRAM_FRETS } from "./guitar-chord";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -37,7 +38,7 @@ export function renderGuitarDiagram(
 		.configure({
 			strokeWidth: 10,
 			strings,
-			frets: 4,
+			frets: DIAGRAM_FRETS,
 			titleFontSize: 72,
 			fingerSize: 1,
 			fingerTextSize: 36,

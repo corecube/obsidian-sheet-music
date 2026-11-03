@@ -109,7 +109,7 @@ Enclose chord names in `[brackets]` inline with lyrics. Lines containing only a 
 ````md
 ```chords
 Am[x02210]
-C[x32010]
+C[8,10,10,9,8,8]
 G[320003]
 
 [Verse 1]
@@ -123,7 +123,7 @@ G[320003]
 ```
 ````
 
-Define custom voicings by appending a fret string directly to the chord name: `Am[x02210]`. A six-character fret string defines a guitar voicing, a four-character one (`C[0003]`) a ukulele voicing.
+Define custom voicings by appending a fret string directly to the chord name, lowest string first, `x` for a muted string: `Am[x02210]`. From the 10th fret up, separate the frets with commas: `C[8,10,10,9,8,8]`. Six strings define a guitar voicing, four (`C[0003]`) a ukulele voicing. Voicings above the fourth fret are drawn from their lowest fretted fret, with the position shown next to the diagram.
 
 While editing a `chords` block (source mode or Live Preview with the cursor inside it), chord names, section headers and brackets stay colour-coded.
 

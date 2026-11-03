@@ -264,7 +264,7 @@ describe("parseApplicature", () => {
 		).toEqual({ Am: "x02210" });
 	});
 
-	it("resolves relative frets with a base fret and skips frets above 9", () => {
+	it("resolves relative frets with a base fret, listing frets above 9", () => {
 		expect(
 			parseApplicature(
 				{
@@ -273,7 +273,7 @@ describe("parseApplicature", () => {
 				},
 				6,
 			),
-		).toEqual({ "F#m": "244222" });
+		).toEqual({ "F#m": "244222", Eb: "11,13,13,12,11,11" });
 	});
 
 	it("handles ukulele voicings", () => {

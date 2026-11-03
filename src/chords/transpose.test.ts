@@ -28,6 +28,7 @@ describe("transposeSource", () => {
 	it("preserves fret definitions unchanged", () => {
 		expect(transposeSource("[x02210]", 1)).toBe("[x02210]");
 		expect(transposeSource("[320003]", -1)).toBe("[320003]");
+		expect(transposeSource("[x,10,9,10,8,x]", 1)).toBe("[x,10,9,10,8,x]");
 	});
 
 	it("preserves non-bracketed lyrics and only transposes chords", () => {

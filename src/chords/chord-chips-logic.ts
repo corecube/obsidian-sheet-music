@@ -1,6 +1,10 @@
 import type { Chord } from "svguitar";
 import { chordToRoman, displayNumeral, parseKey } from "../progression/roman";
-import { type FrettedInstrument, parseCustomChordDefs } from "./guitar-chord";
+import {
+	type FrettedInstrument,
+	isFretString,
+	parseCustomChordDefs,
+} from "./guitar-chord";
 import {
 	isSectionLine,
 	splitChordsLines,
@@ -8,14 +12,13 @@ import {
 } from "./renderer-logic";
 import { isTranslationLine } from "./translate-logic";
 
-const FRET_STRING_RE = /^[xX0-9]+$/;
-
 export interface ChordChipsModel {
 	/** Chord names in order of first appearance in the block. */
 	names: string[];
 	/**
-	 * Custom voicings defined in the block, per fretted instrument: six-fret
-	 * strings (`Am[x02210]`) are guitar, four-fret strings (`C[0003]`) ukulele.
+	 * Custom voicings defined in the block, per fretted instrument: six-string
+	 * fret strings (`Am[x02210]`, `G7[x,10,9,10,8,x]`) are guitar, four-string
+	 * ones (`C[0003]`) ukulele.
 	 */
 	customDefs: Record<FrettedInstrument, Map<string, Chord>>;
 	/** Roman numeral per chord name; empty without a note key. */
@@ -56,7 +59,7 @@ export function collectBlockChords(
 		for (const token of tokenizeChordsLine(line)) {
 			if (token.type !== "bracket") continue;
 			const name = token.value.slice(1, -1);
-			if (!FRET_STRING_RE.test(name)) add(name);
+			if (!isFretString(name)) add(name);
 		}
 	}
 	return { names, customDefs };

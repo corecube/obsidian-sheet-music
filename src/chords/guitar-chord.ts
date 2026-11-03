@@ -72,20 +72,63 @@ function positionToChord(
 	};
 }
 
-// Matches e.g. "Bm[x24432]", "C[x32011]" or "Dadd9/F#[200230]" (guitar,
-// six characters) and "C[0003]" or "Am[2000]" (ukulele, four characters).
-const CUSTOM_DEF_PATTERN =
-	/^([A-G][#b]?[A-Za-z0-9#/]*)\[([xX0-9]{4}|[xX0-9]{6})\]\s*$/;
+/** Frets one diagram shows; must match `frets` in guitar-diagram.ts. */
+export const DIAGRAM_FRETS = 4;
 
-function fretStringToChord(name: string, fretStr: string): Chord {
-	const strings = fretStr.length;
-	const fingers: Chord["fingers"] = [...fretStr].map((c, i) => {
+// A fret string lists the frets from the lowest string to the highest, "x"
+// for a muted string and 0 for an open one. Compact form: one character per
+// string, so frets 0-9 only ("Bm[x24432]", "C[0003]"). Listed form: comma
+// separated, any fret, needed from the 10th fret up ("G7[x,10,9,10,8,x]").
+const COMPACT_FRETS = /^[xX0-9]+$/;
+const LISTED_FRETS = /^(?:[xX]|\d{1,2})(?:\s*,\s*(?:[xX]|\d{1,2}))+$/;
+const CUSTOM_DEF_PATTERN = /^([A-G][#b]?[A-Za-z0-9#/]*)\[([^\]\n]+)\]\s*$/;
+
+/** True when `text` is written like a fret string, whatever its length. */
+export function isFretString(text: string): boolean {
+	const trimmed = text.trim();
+	return COMPACT_FRETS.test(trimmed) || LISTED_FRETS.test(trimmed);
+}
+
+/**
+ * Frets of a fret string, low string first, -1 for a muted string; null
+ * unless `text` is a fret string with the string count of a known
+ * instrument (six for guitar, four for ukulele).
+ */
+export function parseFretString(text: string): number[] | null {
+	const trimmed = text.trim();
+	let parts: string[];
+	if (COMPACT_FRETS.test(trimmed)) parts = [...trimmed];
+	else if (LISTED_FRETS.test(trimmed))
+		parts = trimmed.split(",").map((part) => part.trim());
+	else return null;
+	if (!Object.values(STRING_COUNT).includes(parts.length)) return null;
+	return parts.map((part) =>
+		part === "x" || part === "X" ? -1 : Number.parseInt(part, 10),
+	);
+}
+
+/**
+ * Diagram of `frets`. Voicings that reach past the frets a diagram shows
+ * are drawn from their lowest fretted fret, labelled as that position, the
+ * way chords-db voicings carry a `baseFret`.
+ */
+function fretsToChord(name: string, frets: number[]): Chord {
+	const fretted = frets.filter((f) => f > 0);
+	const position =
+		Math.max(...fretted) > DIAGRAM_FRETS ? Math.min(...fretted) : 1;
+	const strings = frets.length;
+	const fingers: Chord["fingers"] = frets.map((fret, i) => {
 		const string = strings - i;
-		return c === "x" || c === "X"
-			? [string, SILENT]
-			: [string, c === "0" ? OPEN : Number.parseInt(c, 10)];
+		if (fret < 0) return [string, SILENT];
+		if (fret === 0) return [string, OPEN];
+		return [string, fret - position + 1];
 	});
-	return { title: name, fingers, barres: [] };
+	return {
+		title: name,
+		fingers,
+		barres: [],
+		...(position > 1 ? { position } : {}),
+	};
 }
 
 /**
@@ -105,9 +148,11 @@ export function parseCustomChordDefs(
 		if (!match) continue;
 		const [, name, fretStr] = match;
 		if (!name || !fretStr) continue;
+		const frets = parseFretString(fretStr);
+		if (!frets) continue;
 		const instrument: FrettedInstrument =
-			fretStr.length === STRING_COUNT.ukulele ? "ukulele" : "guitar";
-		defs[instrument].set(name, fretStringToChord(name, fretStr));
+			frets.length === STRING_COUNT.ukulele ? "ukulele" : "guitar";
+		defs[instrument].set(name, fretsToChord(name, frets));
 	}
 	return defs;
 }

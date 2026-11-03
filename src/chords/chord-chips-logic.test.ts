@@ -52,6 +52,14 @@ describe("collectBlockChords", () => {
 		expect(names).not.toContain("0003");
 	});
 
+	it("keeps listed voicings out of the chord names", () => {
+		const { names, customDefs } = collectBlockChords(
+			"G7[x,10,9,10,8,x]\n[G7] la [C] la",
+		);
+		expect(names).toEqual(["G7", "C"]);
+		expect(customDefs.guitar.get("G7")?.position).toBe(8);
+	});
+
 	it("keeps custom voicings keyed by chord name, split by instrument", () => {
 		const { customDefs } = collectBlockChords(BLOCK);
 		expect([...customDefs.guitar.keys()]).toEqual(["Am"]);

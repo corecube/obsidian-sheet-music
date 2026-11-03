@@ -6,7 +6,8 @@ const TUNINGS: Record<number, string[]> = {
 	6: ["E", "A", "D", "G", "B", "E"],
 	4: ["G", "C", "E", "A"],
 };
-const MAX_FRET_CHAR = 9;
+/** Highest fret the compact fret string form (`x32010`) can hold. */
+const MAX_COMPACT_FRET = 9;
 
 function chroma(note: string): number | null {
 	const value = Note.chroma(note);
@@ -51,10 +52,10 @@ export function isFretArray(value: unknown, length: number): value is number[] {
 	);
 }
 
-/** `x32010`, or null when a fret needs two characters. */
-function fretString(frets: number[]): string | null {
-	if (frets.some((f) => f > MAX_FRET_CHAR)) return null;
-	return frets.map((f) => (f < 0 ? "x" : String(f))).join("");
+/** `x32010`, or the listed form `x,10,9,10,8,x` once a fret needs two digits. */
+export function fretString(frets: number[]): string {
+	const parts = frets.map((f) => (f < 0 ? "x" : String(f)));
+	return parts.join(frets.some((f) => f > MAX_COMPACT_FRET) ? "," : "");
 }
 
 /**
@@ -77,9 +78,7 @@ export function spelledFretString(
 		}
 	}
 	for (const reading of readings) {
-		if (!voicingSpellsChord(reading, name)) continue;
-		const text = fretString(reading);
-		if (text) return text;
+		if (voicingSpellsChord(reading, name)) return fretString(reading);
 	}
 	return null;
 }
